@@ -18,10 +18,15 @@ export default function CheckinPage() {
     setStatus("loading");
 
     const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      setStatus("error");
+      setMessage("Não autenticado.");
+      return;
+    }
     const { data: profile } = await supabase
       .from("profiles")
       .select("id")
-      .eq("user_id", userData.user?.id)
+      .eq("user_id", userData.user.id)
       .single();
 
     const { data: event } = await supabase

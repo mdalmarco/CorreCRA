@@ -1,3 +1,4 @@
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -10,16 +11,18 @@ export default async function DashboardPage() {
     data: { user },
   } = await supabase.auth.getUser();
 
+  if (!user) redirect("/login");
+
   const { data: profile } = await supabase
     .from("profiles")
     .select("*")
-    .eq("user_id", user?.id)
+    .eq("user_id", user.id)
     .single();
 
   const { data: ledger } = await supabase
     .from("point_ledger")
     .select("points, status")
-    .eq("participant_id", profile?.id)
+    .eq("participant_id", profile?.id ?? "")
     .eq("status", "validated");
 
   const totalPoints = (ledger ?? []).reduce((sum: number, l: { points: number }) => sum + l.points, 0);
@@ -27,7 +30,7 @@ export default async function DashboardPage() {
   const { data: pendingRequests } = await supabase
     .from("point_requests")
     .select("id")
-    .eq("participant_id", profile?.id)
+    .eq("participant_id", profile?.id ?? "")
     .in("status", ["submitted", "in_review", "complement_requested"]);
 
   const { data: nextEvent } = await supabase
@@ -58,11 +61,15 @@ export default async function DashboardPage() {
       </Card>
 
       <div className="grid grid-cols-2 gap-3">
-        <Button asChild size="lg" className="h-16 bg-[#F5C518] text-black hover:bg-[#e0b310]">
-          <Link href="/checkin">Fazer check-in</Link>
+        <Button
+          render={<Link href="/checkin" />}
+          size="lg"
+          className="h-16 bg-[#F5C518] text-black hover:bg-[#e0b310]"
+        >
+          Fazer check-in
         </Button>
-        <Button asChild size="lg" variant="outline" className="h-16">
-          <Link href="/registrar-prova">Registrar prova</Link>
+        <Button render={<Link href="/registrar-prova" />} size="lg" variant="outline" className="h-16">
+          Registrar prova
         </Button>
       </div>
 
