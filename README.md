@@ -1,52 +1,32 @@
 # CorreCRA — Desafio CRA 2026
 
-Sistema de gestão do Desafio CRA 2026 (grupo de corrida CRA). MVP mobile-first
-com autenticação, check-in, validação de pontos por organizadores e ranking.
+Sistema de gestao do Desafio CRA 2026, do grupo de corrida CRA (Indaial/Blumenau).
 
 ## Stack
+Next.js (App Router) · TypeScript · Tailwind · shadcn/ui · Supabase (Auth + Postgres + Storage)
 
-- Next.js 15 (App Router) + TypeScript
-- Tailwind CSS
-- Supabase (Auth, Postgres, Storage) — projeto `CorreCRA` (`yatkvqeykzxtlelogfez`)
+## Status atual (Etapa 2 concluida — Etapa 3 em andamento)
 
-## Status
+Banco de dados **provisionado e populado** no Supabase (projeto `CorreCRA`, id `yatkvqeykzxtlelogfez`, regiao `sa-east-1`):
+- Schema completo (profiles, challenges, activity_types, events, event_checkins, external_races, point_requests, attachments, point_ledger, ranking_snapshots, notifications, audit_logs, draws)
+- RLS habilitado em todas as tabelas, com policies por papel (participant/organizer/admin)
+- Funcoes de negocio server-side (`fn_do_checkin`, `fn_review_point_request`, `fn_manual_point_adjustment`) que garantem: sem check-in duplicado, sem auto-aprovacao pelo organizador, ajuste manual sempre com justificativa e log de auditoria
+- Dados iniciais: Desafio CRA 2026 (01/08 a 30/11/2026), 4 tipos de atividade, 3 eventos de exemplo
 
-- [x] Schema do banco + RLS aplicados (`supabase/migrations/0001_init.sql`)
-- [x] Dados iniciais do Desafio CRA 2026 semeados
-- [x] Auth por magic link
-- [x] Dashboard do participante (pontuação real via `point_ledger`)
-- [x] Check-in por código de evento (QR Code entra na v1.1)
-- [x] Registro de prova externa + upload de comprovante (bucket `comprovantes`)
-- [ ] Painel do organizador (validação, eventos, participantes)
-- [x] Ranking (soma do point_ledger validado — desempate ainda não implementado)
-- [ ] Auditoria e ajustes manuais de pontuação
+Telas implementadas: login, cadastro, dashboard do participante, ranking, check-in por codigo.
 
-## Setup local
+## Ainda faltam (proximas etapas)
+- Etapa 3 completa: extrato de pontuacao, registrar prova (formulario em 4 etapas), eventos, perfil, notificacoes
+- Etapa 4: painel do organizador (eventos, validacoes, participantes, configuracao de pontuacao, comunicados, sorteios)
+- QR Code (geracao e leitura) — check-in por codigo ja funciona
+- Upload de comprovantes via Supabase Storage
+- Job de recalculo de ranking com criterios de desempate
 
-```bash
-npm install
-cp .env.example .env.local  # preencher com as chaves do projeto Supabase
-npm run dev
-```
+## Configuracao local
 
-## Regras de pontuação (v1)
+1. Copie `.env.example` para `.env.local` e preencha `NEXT_PUBLIC_SUPABASE_ANON_KEY` e `SUPABASE_SERVICE_ROLE_KEY` (Supabase Dashboard → Project Settings → API).
+2. `npm install`
+3. `npm run dev`
 
-| Atividade | Pontos | Aprovação |
-|---|---|---|
-| Inscrição em prova como equipe CRA | 5 | Manual |
-| Prova com camisa CRA | 3 | Manual |
-| Corre semanal | 2 | Automática (check-in) |
-| Treinão mensal | 2 | Automática (check-in) |
-
-Regras completas e critérios de desempate: ver `supabase/migrations/0001_init.sql`.
-
-## Nota sobre o schema
-
-O schema do Supabase (enums, tabelas, RLS) já estava criado neste projeto
-antes desta sessão — provavelmente por outra sessão/agente trabalhando no
-mesmo prompt em paralelo. Os enums usam valores em inglês
-(`active`, `checkin_open`, `validated`, `organizer`/`admin` etc.),
-não os que a migration `0001_init.sql` deste repo propunha. O código em
-`src/` foi escrito para o schema real (o que está em produção no Supabase),
-não para `0001_init.sql`. Antes de rodar `0001_init.sql` em outro ambiente,
-confirme se o schema alvo já não está mais avançado.
+## Deploy
+Conectar o repositorio ao Vercel e configurar as mesmas variaveis de ambiente do `.env.example`.
