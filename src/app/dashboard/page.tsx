@@ -16,7 +16,7 @@ export default async function DashboardPage() {
     .from("point_ledger")
     .select("points, status")
     .eq("participant_id", profile?.id ?? "")
-    .eq("status", "validada");
+    .eq("status", "validated");
 
   const totalPoints = (ledgerRows ?? []).reduce((sum, r) => sum + Number(r.points), 0);
 
@@ -33,13 +33,19 @@ export default async function DashboardPage() {
         <div className="rounded-xl border p-4">
           <p className="text-sm text-neutral-500">Status</p>
           <p className="text-xl font-semibold capitalize">
-            {profile?.participant_status?.replace("_", " ") ?? "—"}
+            {profile?.participant_status ?? "—"}
           </p>
         </div>
       </div>
-      <div className="mt-6 flex gap-3">
+      <div className="mt-6 flex flex-wrap gap-3">
         <a href="/checkin" className="rounded-lg bg-cra-yellow px-5 py-3 font-semibold">
           Fazer check-in
+        </a>
+        <a href="/prova" className="rounded-lg border px-5 py-3 font-semibold">
+          Registrar prova
+        </a>
+        <a href="/extrato" className="rounded-lg border px-5 py-3 font-semibold">
+          Meu extrato
         </a>
         <a href="/ranking" className="rounded-lg border px-5 py-3 font-semibold">
           Ver ranking

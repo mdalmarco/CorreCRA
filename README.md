@@ -15,10 +15,10 @@ com autenticação, check-in, validação de pontos por organizadores e ranking.
 - [x] Dados iniciais do Desafio CRA 2026 semeados
 - [x] Auth por magic link
 - [x] Dashboard do participante (pontuação real via `point_ledger`)
-- [ ] Check-in (QR Code / código / manual)
-- [ ] Registro de prova externa + upload de comprovante
+- [x] Check-in por código de evento (QR Code entra na v1.1)
+- [x] Registro de prova externa + upload de comprovante (bucket `comprovantes`)
 - [ ] Painel do organizador (validação, eventos, participantes)
-- [ ] Ranking com critérios de desempate
+- [x] Ranking (soma do point_ledger validado — desempate ainda não implementado)
 - [ ] Auditoria e ajustes manuais de pontuação
 
 ## Setup local
@@ -39,3 +39,14 @@ npm run dev
 | Treinão mensal | 2 | Automática (check-in) |
 
 Regras completas e critérios de desempate: ver `supabase/migrations/0001_init.sql`.
+
+## Nota sobre o schema
+
+O schema do Supabase (enums, tabelas, RLS) já estava criado neste projeto
+antes desta sessão — provavelmente por outra sessão/agente trabalhando no
+mesmo prompt em paralelo. Os enums usam valores em inglês
+(`active`, `checkin_open`, `validated`, `organizer`/`admin` etc.),
+não os que a migration `0001_init.sql` deste repo propunha. O código em
+`src/` foi escrito para o schema real (o que está em produção no Supabase),
+não para `0001_init.sql`. Antes de rodar `0001_init.sql` em outro ambiente,
+confirme se o schema alvo já não está mais avançado.
