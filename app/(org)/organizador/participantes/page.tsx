@@ -77,7 +77,7 @@ export default async function ParticipantesOrgPage({
                     <Badge className="bg-[#F5C518] text-black">VIP</Badge>
                   ) : (
                     <Badge variant="secondary">
-                      {p.status ? participantStatusLabel[p.status] ?? p.status : "Nao inscrito no desafio"}
+                      {p.status ? participantStatusLabel[p.status] ?? p.status : "Não inscrito no desafio"}
                     </Badge>
                   )}
                 </div>

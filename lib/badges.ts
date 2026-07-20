@@ -12,51 +12,51 @@ export interface Badge {
   id: string;
   label: string;
   emoji: string;
-  category: "Presenca" | "Sequencia" | "Treinos" | "Provas";
+  category: "Presença" | "Sequência" | "Treinos" | "Provas";
   earned: boolean;
 }
 
 export function computeBadges(input: BadgeInput): Badge[] {
   const totalCheckins = input.checkinActivityNames.length;
   const weeklyRunCheckins = input.checkinActivityNames.filter((n) => n === "Corre semanal").length;
-  const monthlyTrainingCheckins = input.checkinActivityNames.filter((n) => n === "Treinao mensal").length;
+  const monthlyTrainingCheckins = input.checkinActivityNames.filter((n) => n === "Treinão mensal").length;
   const craRegistrations = input.ledgerActivityNames.filter(
-    (n) => n === "Inscricao em prova como equipe CRA"
+    (n) => n === "Inscrição em prova como equipe CRA"
   ).length;
   const craShirtRaces = input.ledgerActivityNames.filter((n) => n === "Prova com camisa CRA").length;
 
   return [
     {
-      id: "primeira-participacao",
-      label: "Primeira participacao",
+      id: "primeira-participação",
+      label: "Primeira participação",
       emoji: "🎉",
-      category: "Presenca",
+      category: "Presença",
       earned: totalCheckins >= 1,
     },
     {
       id: "dez-atividades",
       label: "10 atividades",
       emoji: "⭐",
-      category: "Presenca",
+      category: "Presença",
       earned: totalCheckins >= 10,
     },
     {
       id: "primeiro-corre",
       label: "Primeiro corre semanal",
       emoji: "🏃",
-      category: "Sequencia",
+      category: "Sequência",
       earned: weeklyRunCheckins >= 1,
     },
     {
       id: "quatro-semanas",
       label: "4 semanas consecutivas",
       emoji: "🔥",
-      category: "Sequencia",
+      category: "Sequência",
       earned: input.weeklyStreak >= 4,
     },
     {
-      id: "primeiro-treinao",
-      label: "Primeiro treinao",
+      id: "primeiro-treinão",
+      label: "Primeiro treinão",
       emoji: "💪",
       category: "Treinos",
       earned: monthlyTrainingCheckins >= 1,

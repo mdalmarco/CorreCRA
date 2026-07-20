@@ -8,14 +8,14 @@ export async function registerExternalRace(formData: FormData) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Nao autenticado." };
+  if (!user) return { error: "Não autenticado." };
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("id")
     .eq("user_id", user.id)
     .single();
-  if (!profile) return { error: "Perfil nao encontrado." };
+  if (!profile) return { error: "Perfil não encontrado." };
 
   const name = String(formData.get("name") ?? "");
   const raceDate = String(formData.get("race_date") ?? "");
@@ -28,7 +28,7 @@ export async function registerExternalRace(formData: FormData) {
 
   if (!name || !raceDate) return { error: "Preencha nome e data da prova." };
   if (!usedCraRegistration && !usedCraShirt) {
-    return { error: "Selecione ao menos um item: inscricao CRA ou camisa CRA." };
+    return { error: "Selecione ao menos um item: inscrição CRA ou camisa CRA." };
   }
   if (!file || file.size === 0) return { error: "Anexe um comprovante." };
 
@@ -48,16 +48,16 @@ export async function registerExternalRace(formData: FormData) {
     .maybeSingle();
 
   if (enrollment?.status !== "active" || enrollment?.payment_status !== "confirmed") {
-    return { error: "Voce precisa ser VIP do desafio (pagamento confirmado) para registrar provas." };
+    return { error: "Você precisa ser VIP do desafio (pagamento confirmado) para registrar provas." };
   }
 
   const { data: activityTypes } = await supabase
     .from("activity_types")
     .select("id, name")
     .eq("challenge_id", challenge.id)
-    .in("name", ["Inscricao em prova como equipe CRA", "Prova com camisa CRA"]);
+    .in("name", ["Inscrição em prova como equipe CRA", "Prova com camisa CRA"]);
 
-  const registrationType = activityTypes?.find((a) => a.name === "Inscricao em prova como equipe CRA");
+  const registrationType = activityTypes?.find((a) => a.name === "Inscrição em prova como equipe CRA");
   const shirtType = activityTypes?.find((a) => a.name === "Prova com camisa CRA");
 
   const { data: race, error: raceError } = await supabase
@@ -115,7 +115,7 @@ export async function registerExternalRace(formData: FormData) {
 
   if (requestsToCreate.length > 0) {
     const { error: reqError } = await supabase.from("point_requests").insert(requestsToCreate);
-    if (reqError) return { error: "Prova registrada, mas erro ao criar solicitacao: " + reqError.message };
+    if (reqError) return { error: "Prova registrada, mas erro ao criar solicitação: " + reqError.message };
   }
 
   revalidatePath("/dashboard");

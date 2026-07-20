@@ -24,7 +24,7 @@ export async function reviewPointRequest(
   notes: string
 ) {
   const { supabase, reviewerId } = await getReviewerProfileId();
-  if (!reviewerId) return { error: "Nao autenticado." };
+  if (!reviewerId) return { error: "Não autenticado." };
 
   const { error } = await supabase.rpc("fn_review_point_request", {
     p_request_id: requestId,
@@ -35,7 +35,7 @@ export async function reviewPointRequest(
   });
 
   if (error) return { error: error.message };
-  revalidatePath("/organizador/validacoes");
+  revalidatePath("/organizador/validações");
   return { success: true };
 }
 
@@ -46,7 +46,7 @@ export async function manualPointAdjustment(
   reason: string
 ) {
   const { supabase, reviewerId } = await getReviewerProfileId();
-  if (!reviewerId) return { error: "Nao autenticado." };
+  if (!reviewerId) return { error: "Não autenticado." };
 
   const { error } = await supabase.rpc("fn_manual_point_adjustment", {
     p_participant_id: participantId,
@@ -63,8 +63,8 @@ export async function manualPointAdjustment(
 
 export async function confirmPayment(participantId: string, challengeId: string) {
   const { supabase, reviewerId } = await getReviewerProfileId();
-  if (!reviewerId) return { error: "Nao autenticado." };
-  if (!challengeId) return { error: "Desafio nao encontrado." };
+  if (!reviewerId) return { error: "Não autenticado." };
+  if (!challengeId) return { error: "Desafio não encontrado." };
 
   const { error } = await supabase
     .from("challenge_participants")
@@ -84,8 +84,8 @@ export async function setParticipantStatus(
   status: "active" | "suspended" | "closed"
 ) {
   const { supabase, reviewerId } = await getReviewerProfileId();
-  if (!reviewerId) return { error: "Nao autenticado." };
-  if (!challengeId) return { error: "Desafio nao encontrado." };
+  if (!reviewerId) return { error: "Não autenticado." };
+  if (!challengeId) return { error: "Desafio não encontrado." };
 
   const { error } = await supabase
     .from("challenge_participants")
@@ -100,7 +100,7 @@ export async function setParticipantStatus(
 
 export async function generateEventQrToken(eventId: string) {
   const { supabase, reviewerId } = await getReviewerProfileId();
-  if (!reviewerId) return { error: "Nao autenticado." };
+  if (!reviewerId) return { error: "Não autenticado." };
 
   const token = crypto.randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase();
   const expiresAt = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(); // 4h
@@ -117,7 +117,7 @@ export async function generateEventQrToken(eventId: string) {
 
 export async function runCranecaDraw(eventId: string) {
   const { supabase, reviewerId } = await getReviewerProfileId();
-  if (!reviewerId) return { error: "Nao autenticado." };
+  if (!reviewerId) return { error: "Não autenticado." };
 
   const { data, error } = await supabase.rpc("fn_run_craneca_draw", {
     p_event_id: eventId,
@@ -138,7 +138,7 @@ export async function runCranecaDraw(eventId: string) {
 
 export async function createEvent(formData: FormData) {
   const { supabase, reviewerId } = await getReviewerProfileId();
-  if (!reviewerId) return { error: "Nao autenticado." };
+  if (!reviewerId) return { error: "Não autenticado." };
 
   const { data: challenge } = await supabase
     .from("challenges")
@@ -160,7 +160,7 @@ export async function createEvent(formData: FormData) {
     .toUpperCase();
 
   if (!name || !startAt || !activityTypeId || !checkinCode) {
-    return { error: "Preencha nome, atividade, data e codigo de check-in." };
+    return { error: "Preencha nome, atividade, data e código de check-in." };
   }
 
   const { error } = await supabase.from("events").insert({
@@ -184,7 +184,7 @@ export async function createEvent(formData: FormData) {
 
 export async function closeEventCheckin(eventId: string) {
   const { supabase, reviewerId } = await getReviewerProfileId();
-  if (!reviewerId) return { error: "Nao autenticado." };
+  if (!reviewerId) return { error: "Não autenticado." };
 
   const { error } = await supabase
     .from("events")

@@ -35,7 +35,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm border-[#2c2c32]">
         <CardHeader>
           <CardTitle className="text-xl">Desafio CRA 2026</CardTitle>
-          <CardDescription>Entre para acompanhar sua pontuacao</CardDescription>
+          <CardDescription>Entre para acompanhar sua pontuação</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleLogin} className="space-y-4">
@@ -65,7 +65,7 @@ export default function LoginPage() {
               {loading ? "Entrando..." : "Entrar"}
             </Button>
             <p className="text-center text-sm text-neutral-500">
-              Ainda nao tem conta?{" "}
+              Ainda não tem conta?{" "}
               <a href="/cadastro" className="font-medium text-[#F5C518] underline">
                 Participe do desafio
               </a>

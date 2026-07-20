@@ -31,13 +31,13 @@ export default function CadastroPage() {
 
     setLoading(false);
     if (signUpError || !data.user) {
-      setError(signUpError?.message ?? "Nao foi possivel criar a conta.");
+      setError(signUpError?.message ?? "Não foi possivel criar a conta.");
       return;
     }
 
     // O perfil e criado automaticamente por um trigger no banco (on_auth_user_created),
-    // entao nao precisamos inserir aqui — evita falha de RLS quando a confirmacao de
-    // e-mail esta ativa e ainda nao ha sessao autenticada nesse momento.
+    // entao não precisamos inserir aqui — evita falha de RLS quando a confirmação de
+    // e-mail esta ativa e ainda não ha sessao autenticada nesse momento.
     setDone(true);
     setTimeout(() => router.push("/login"), 2000);
   }
@@ -48,7 +48,7 @@ export default function CadastroPage() {
         <div>
           <h1 className="text-xl font-semibold">Cadastro realizado!</h1>
           <p className="mt-2 text-neutral-500">
-            Confirme seu e-mail e faca login para completar o perfil.
+            Confirme seu e-mail e faça login para completar o perfil.
           </p>
         </div>
       </div>

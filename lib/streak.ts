@@ -66,8 +66,8 @@ export function computeWeeklyStreak(checkinDates: string[]): number {
   const now = new Date();
   const cursor = startOfWeek(now);
 
-  // se a semana atual ainda nao teve check-in, comeca a contar da semana passada
-  // (a atual ainda "esta valendo", so nao entra na contagem se vazia)
+  // se a semana atual ainda não teve check-in, comeca a contar da semana passada
+  // (a atual ainda "esta valendo", so não entra na contagem se vazia)
   if (!weekSet.has(isoWeekKey(cursor))) {
     cursor.setDate(cursor.getDate() - 7);
   }

@@ -8,14 +8,14 @@ export async function joinChallenge() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Nao autenticado." };
+  if (!user) return { error: "Não autenticado." };
 
   const { data: profile } = await supabase
     .from("profiles")
     .select("id")
     .eq("user_id", user.id)
     .single();
-  if (!profile) return { error: "Perfil nao encontrado." };
+  if (!profile) return { error: "Perfil não encontrado." };
 
   const { data: challenge } = await supabase
     .from("challenges")
@@ -33,7 +33,7 @@ export async function joinChallenge() {
   });
 
   if (error) {
-    if (error.code === "23505") return { error: "Voce ja solicitou participacao neste desafio." };
+    if (error.code === "23505") return { error: "Você ja solicitou participação neste desafio." };
     return { error: error.message };
   }
 

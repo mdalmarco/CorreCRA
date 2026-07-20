@@ -13,7 +13,7 @@ interface PendingRequest {
   external_races: { name: string; race_date: string; official_url: string | null } | null;
 }
 
-export default async function ValidacoesPage() {
+export default async function ValidaçõesPage() {
   const supabase = await createClient();
 
   const { data: requests } = await supabase
@@ -29,13 +29,13 @@ export default async function ValidacoesPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Central de validacoes</h1>
+        <h1 className="text-xl font-bold">Central de validações</h1>
         <Badge variant="secondary">{pending.length} pendente(s)</Badge>
       </div>
 
       {pending.length === 0 && (
         <p className="rounded-lg border border-dashed p-8 text-center text-neutral-400">
-          Nenhuma solicitacao pendente.
+          Nenhuma solicitação pendente.
         </p>
       )}
 

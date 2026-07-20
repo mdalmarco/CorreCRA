@@ -9,7 +9,7 @@ type CheckinMethod = "event_code" | "qr_code";
 
 export default function CheckinPage() {
   const supabase = createClient();
-  const [tab, setTab] = useState<"codigo" | "qrcode">("codigo");
+  const [tab, setTab] = useState<"código" | "qrcode">("código");
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -65,7 +65,7 @@ export default function CheckinPage() {
       setMessage(
         method === "qr_code"
           ? "QR Code invalido ou expirado. Confere com o organizador."
-          : "Codigo invalido. Confere e tenta de novo."
+          : "Código invalido. Confere e tenta de novo."
       );
       return;
     }
@@ -145,8 +145,8 @@ export default function CheckinPage() {
             </p>
             <p className="text-sm text-[#9a9aa2]">{eventName}</p>
             <p className="max-w-xs text-sm text-[#9a9aa2]">
-              Sua conta e livre, entao esse check-in ainda nao vale pontos. Entre no Desafio CRA
-              2026 pra comecar a subir de nivel a partir do proximo corre.
+              Sua conta e livre, entao esse check-in ainda não vale pontos. Entre no Desafio CRA
+              2026 pra comecar a subir de nível a partir do próximo corre.
             </p>
             <Link
               href="/dashboard"
@@ -185,12 +185,12 @@ export default function CheckinPage() {
 
       <div className="flex gap-2">
         <button
-          onClick={() => setTab("codigo")}
+          onClick={() => setTab("código")}
           className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
-            tab === "codigo" ? "bg-[#F5C518] text-black" : "border border-[#2c2c32] text-[#9a9aa2]"
+            tab === "código" ? "bg-[#F5C518] text-black" : "border border-[#2c2c32] text-[#9a9aa2]"
           }`}
         >
-          Digitar codigo
+          Digitar código
         </button>
         <button
           onClick={() => setTab("qrcode")}
@@ -202,7 +202,7 @@ export default function CheckinPage() {
         </button>
       </div>
 
-      {tab === "codigo" && (
+      {tab === "código" && (
         <div className="cra-glass rounded-2xl p-5">
           <form onSubmit={handleCodeSubmit} className="space-y-3">
             <input

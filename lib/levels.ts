@@ -1,4 +1,4 @@
-// Niveis de participacao do Desafio CRA 2026 (regra 12 do prompt original).
+// Niveis de participação do Desafio CRA 2026 (regra 12 do prompt original).
 // Configuravel no futuro; por enquanto fixo aqui.
 export const LEVELS = [
   { name: "Iniciante", min: 0 },

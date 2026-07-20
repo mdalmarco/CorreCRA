@@ -72,7 +72,7 @@ export default async function EventosOrgPage() {
                     {ev.city ?? "—"} — {new Date(ev.start_at).toLocaleString("pt-BR")}
                   </p>
                   <p>
-                    Codigo: <strong>{ev.checkin_code}</strong> — {ev.points} pts
+                    Código: <strong>{ev.checkin_code}</strong> — {ev.points} pts
                   </p>
                 </div>
                 {ev.status === "checkin_open" && <CloseCheckinButton eventId={ev.id} />}

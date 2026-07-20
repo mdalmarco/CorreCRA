@@ -70,7 +70,7 @@ export function CreateEventForm({ activityTypes }: { activityTypes: ActivityType
             </div>
           </div>
           <div className="space-y-2">
-            <Label htmlFor="checkin_code">Codigo de check-in</Label>
+            <Label htmlFor="checkin_code">Código de check-in</Label>
             <Input id="checkin_code" name="checkin_code" placeholder="Ex: CRA482" required className="uppercase" />
           </div>
           <div className="grid grid-cols-2 gap-3">

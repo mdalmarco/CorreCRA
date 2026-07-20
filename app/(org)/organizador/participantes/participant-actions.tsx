@@ -85,7 +85,7 @@ export function ParticipantActions({
               placeholder="+/- pts"
             />
             <Input
-              placeholder="Justificativa (obrigatoria)"
+              placeholder="Justificativa (obrigatória)"
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               className="flex-1"

@@ -1,5 +1,5 @@
 // O mascote do CRA e um guepardo — reaproveita o sistema de niveis existente
-// como "evolucao" (sem tabela nova: o guepardo evolui junto com o nivel real).
+// como "evolução" (sem tabela nova: o guepardo evolui junto com o nível real).
 
 export interface MascotStyle {
   emoji: string;

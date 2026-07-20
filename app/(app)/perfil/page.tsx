@@ -93,10 +93,10 @@ export default async function PerfilPage() {
   const earnedBadges = badges.filter((b) => b.earned);
   const lockedBadges = badges.filter((b) => !b.earned);
 
-  const categoryOrder = ["Presenca", "Sequencia", "Treinos", "Provas"] as const;
+  const categoryOrder = ["Presença", "Sequência", "Treinos", "Provas"] as const;
   const categoryLabel: Record<(typeof categoryOrder)[number], string> = {
-    Presenca: "Presenca",
-    Sequencia: "Sequencia",
+    Presença: "Presença",
+    Sequência: "Sequência",
     Treinos: "Treinos",
     Provas: "Provas",
   };
@@ -167,9 +167,9 @@ export default async function PerfilPage() {
         )}
       </div>
 
-      {/* Colecoes */}
+      {/* Coleções */}
       <div className="rounded-2xl border border-[#2c2c32] bg-[#17171a] p-4">
-        <p className="mb-3 text-sm font-semibold text-[#f5f5f0]">Colecoes</p>
+        <p className="mb-3 text-sm font-semibold text-[#f5f5f0]">Coleções</p>
         <div className="grid grid-cols-4 gap-2">
           {collections.map((c) => (
             <div
@@ -236,7 +236,7 @@ export default async function PerfilPage() {
 
       {/* Linha do tempo */}
       <div className="rounded-2xl border border-[#2c2c32] bg-[#17171a] p-4">
-        <p className="mb-3 text-sm font-semibold text-[#f5f5f0]">Historico</p>
+        <p className="mb-3 text-sm font-semibold text-[#f5f5f0]">Histórico</p>
         <div className="space-y-2">
           {(ledgerEntries ?? []).slice(0, 8).map((l) => (
             <div key={l.id} className="flex items-center justify-between text-sm">
@@ -283,7 +283,7 @@ export default async function PerfilPage() {
             {profile.terms_version ? ` (v${profile.terms_version})` : ""}
           </p>
         ) : (
-          <p>Termos ainda nao aceitos.</p>
+          <p>Termos ainda não aceitos.</p>
         )}
       </div>
     </div>

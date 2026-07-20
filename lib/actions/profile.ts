@@ -8,7 +8,7 @@ export async function updateProfile(formData: FormData) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { error: "Nao autenticado." };
+  if (!user) return { error: "Não autenticado." };
 
   const displayName = String(formData.get("display_name") ?? "").trim();
   const city = String(formData.get("city") ?? "").trim();

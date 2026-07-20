@@ -18,7 +18,7 @@ export function JoinChallengeButton({ fee }: { fee: number }) {
   if (result?.success) {
     return (
       <p className="text-sm text-neutral-300">
-        Solicitacao enviada! Assim que o pagamento for confirmado por um organizador, voce vira VIP.
+        Solicitação enviada! Assim que o pagamento for confirmado por um organizador, você vira VIP.
       </p>
     );
   }

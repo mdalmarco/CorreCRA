@@ -31,7 +31,7 @@ export function RegistrarProvaForm() {
       <Card>
         <CardHeader>
           <CardDescription>
-            Inscricao como equipe CRA e uso da camisa CRA sao avaliados separadamente pelo
+            Inscrição como equipe CRA e uso da camisa CRA sao avaliados separadamente pelo
             organizador.
           </CardDescription>
         </CardHeader>
@@ -47,7 +47,7 @@ export function RegistrarProvaForm() {
                 <Input id="race_date" name="race_date" type="date" required />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="distance">Distancia</Label>
+                <Label htmlFor="distance">Distância</Label>
                 <Input id="distance" name="distance" placeholder="10km" />
               </div>
             </div>
@@ -64,7 +64,7 @@ export function RegistrarProvaForm() {
               <CardContent className="space-y-2 pt-4">
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" name="used_cra_registration" className="h-4 w-4" />
-                  Inscricao como equipe CRA (5 pts)
+                  Inscrição como equipe CRA (5 pts)
                 </label>
                 <label className="flex items-center gap-2 text-sm">
                   <input type="checkbox" name="used_cra_shirt" className="h-4 w-4" />
@@ -90,7 +90,7 @@ export function RegistrarProvaForm() {
               className="w-full bg-[#F5C518] text-black hover:bg-[#e0b310]"
               disabled={isPending}
             >
-              {isPending ? "Enviando..." : "Enviar para analise"}
+              {isPending ? "Enviando..." : "Enviar para análise"}
             </Button>
 
             {result?.success && (

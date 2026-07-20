@@ -25,8 +25,8 @@ export default async function OrgLayout({ children }: { children: React.ReactNod
         <div className="mx-auto flex max-w-4xl items-center gap-4 overflow-x-auto px-4 py-3 text-sm">
           <span className="shrink-0 font-bold">Painel do organizador</span>
           <nav className="flex gap-4 text-neutral-500">
-            <Link href="/organizador/validacoes" className="hover:text-neutral-900">
-              Validacoes
+            <Link href="/organizador/validações" className="hover:text-neutral-900">
+              Validações
             </Link>
             <Link href="/organizador/eventos" className="hover:text-neutral-900">
               Eventos

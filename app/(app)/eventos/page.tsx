@@ -47,7 +47,7 @@ export default async function EventosPage() {
       </h1>
 
       <section className="space-y-3">
-        <h2 className="text-xs font-semibold uppercase tracking-widest text-[#6f6f78]">Proximos</h2>
+        <h2 className="text-xs font-semibold uppercase tracking-widest text-[#6f6f78]">Próximos</h2>
         {(upcomingEvents ?? []).map((ev) => {
           const confirmed = attendanceCounts.get(ev.id) ?? 0;
           const gradient = cityGradient[ev.city ?? ""] ?? "from-[#2c2c32] to-[#0a0a0b]";
@@ -98,7 +98,7 @@ export default async function EventosPage() {
 
       {pastEvents && pastEvents.length > 0 && (
         <section className="space-y-2">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-[#6f6f78]">Historico</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-[#6f6f78]">Histórico</h2>
           {pastEvents.map((ev) => (
             <div
               key={ev.id}

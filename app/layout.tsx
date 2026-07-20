@@ -20,7 +20,7 @@ const bebasNeue = Bebas_Neue({
 
 export const metadata: Metadata = {
   title: "CorreCRA — Desafio CRA 2026",
-  description: "Corra. Suba de nivel. Faca parte da tribo CRA.",
+  description: "Corra. Suba de nível. Faça parte da tribo CRA.",
 };
 
 export default function RootLayout({

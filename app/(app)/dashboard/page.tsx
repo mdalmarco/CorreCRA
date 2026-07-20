@@ -128,10 +128,10 @@ export default async function DashboardPage() {
     .limit(3);
 
   const missionText = todaysEvent
-    ? `Hoje tem corre em ${todaysEvent.city}. Faca check-in e some pontos.`
+    ? `Hoje tem corre em ${todaysEvent.city}. Faça check-in e some pontos.`
     : isVip
-      ? `Faltam ${level.pointsToNext || "poucos"} pts pro nivel ${level.nextLevelName ?? "maximo"}.`
-      : "Participe do desafio pra comecar a subir de nivel.";
+      ? `Faltam ${level.pointsToNext || "poucos"} pts pro nível ${level.nextLevelName ?? "máximo"}.`
+      : "Participe do desafio pra comecar a subir de nível.";
 
   return (
     <div className="mx-auto max-w-3xl space-y-5 p-4 pb-28">
@@ -153,7 +153,7 @@ export default async function DashboardPage() {
 
       {(profile?.role === "organizer" || profile?.role === "admin") && (
         <Link
-          href="/organizador/validacoes"
+          href="/organizador/validações"
           className="block rounded-xl border border-[#2c2c32] bg-[#17171a] p-3 text-center text-sm font-medium text-[#f5f5f0]"
         >
           Abrir painel do organizador
@@ -167,7 +167,7 @@ export default async function DashboardPage() {
         </p>
       )}
 
-      {/* Medalhao de nivel */}
+      {/* Medalhao de nível */}
       <div className="cra-glass relative overflow-hidden rounded-3xl p-6">
         <div className="cra-medallion-glow pointer-events-none absolute inset-0" />
         <div className="relative flex items-center gap-5">
@@ -188,54 +188,58 @@ export default async function DashboardPage() {
                   />
                 </div>
                 <p className="text-xs text-[#9a9aa2]">
-                  Voce esta quase chegando a {level.nextLevelName}
+                  Você esta quase chegando a {level.nextLevelName}
                 </p>
               </>
             )}
             {isVip && !level.nextLevelName && (
-              <p className="text-xs text-[#9a9aa2]">Seu guepardo evoluiu ao maximo — Diamante 💎</p>
+              <p className="text-xs text-[#9a9aa2]">Seu guepardo evoluiu ao máximo — Diamante 💎</p>
             )}
             {!isVip && !isAwaitingPayment && challenge && <JoinChallengeButton fee={challenge.registration_fee} />}
             {isAwaitingPayment && (
-              <p className="text-xs text-[#9a9aa2]">Aguardando confirmacao do organizador pra virar VIP.</p>
+              <p className="text-xs text-[#9a9aa2]">Aguardando confirmação do organizador pra virar VIP.</p>
             )}
           </div>
         </div>
         {pendingRequests && pendingRequests.length > 0 && (
           <p className="relative mt-3 text-xs text-[#9a9aa2]">
-            {pendingRequests.length} solicitacao(oes) em analise
+            {pendingRequests.length} solicitação(oes) em análise
           </p>
         )}
       </div>
 
-      {/* Missao do dia */}
+      {/* Missão do dia */}
       <div className="rounded-2xl border border-[#2c2c32] bg-[#17171a] p-4">
-        <p className="text-xs font-semibold uppercase tracking-widest text-[#c9a227]">Missao de hoje</p>
+        <p className="text-xs font-semibold uppercase tracking-widest text-[#c9a227]">Missão de hoje</p>
         <p className="mt-1 text-sm text-[#f5f5f0]">{missionText}</p>
       </div>
 
-      {/* Missao da semana */}
+      {/* Missão da semana */}
       {isVip && (
         <div className="rounded-2xl border border-[#2c2c32] bg-[#17171a] p-4">
           <div className="flex items-center justify-between">
             <p className="text-xs font-semibold uppercase tracking-widest text-[#c9a227]">
-              Missao da semana
+              Missão da semana
             </p>
             <span className="text-xs text-[#9a9aa2]">
               {weeklyMissionDone}/{WEEKLY_MISSION_TARGET}
             </span>
           </div>
           <p className="mt-1 text-sm text-[#f5f5f0]">
-            Faca check-in {WEEKLY_MISSION_TARGET} vezes esta semana
+            Faça check-in {WEEKLY_MISSION_TARGET} vezes esta semana
           </p>
-          <div className="mt-2 flex gap-1.5">
+          <div className="mt-2 flex gap-2">
             {Array.from({ length: WEEKLY_MISSION_TARGET }).map((_, i) => (
               <span
                 key={i}
-                className={`h-1.5 flex-1 rounded-full ${
-                  i < weeklyMissionDone ? "bg-[#B6FF3C]" : "bg-[#2c2c32]"
+                className={`flex h-8 flex-1 items-center justify-center rounded-lg border text-sm font-bold ${
+                  i < weeklyMissionDone
+                    ? "border-[#B6FF3C] bg-[#B6FF3C]/15 text-[#B6FF3C]"
+                    : "border-[#2c2c32] text-[#3a3a40]"
                 }`}
-              />
+              >
+                {i < weeklyMissionDone ? "✓" : ""}
+              </span>
             ))}
           </div>
         </div>
@@ -273,10 +277,10 @@ export default async function DashboardPage() {
       ) : (
         <Link
           href="/checkin"
-          className="flex items-center justify-between rounded-2xl border border-[#2c2c32] bg-[#17171a] p-4 text-sm font-medium text-[#f5f5f0]"
+          className="flex items-center justify-center gap-2 rounded-2xl bg-[#F5C518] py-4 text-base font-bold text-black shadow-[0_0_20px_rgba(245,197,24,0.35)]"
         >
+          <ScanLine className="h-5 w-5" />
           Fazer check-in
-          <ChevronRight className="h-4 w-4 text-[#9a9aa2]" />
         </Link>
       )}
 
@@ -294,11 +298,11 @@ export default async function DashboardPage() {
         </p>
       )}
 
-      {/* Sua evolucao */}
+      {/* Sua evolução */}
       {isVip && (
         <div className="rounded-2xl border border-[#2c2c32] bg-[#17171a] p-4">
           <div className="mb-1 flex items-center justify-between">
-            <p className="text-sm font-semibold text-[#f5f5f0]">Sua evolucao</p>
+            <p className="text-sm font-semibold text-[#f5f5f0]">Sua evolução</p>
             <span className="font-mono text-sm text-[#B6FF3C]">+{xpThisWeek} pts esta semana</span>
           </div>
           <EvolutionChart data={evolutionData} />
