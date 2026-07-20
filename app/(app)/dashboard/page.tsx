@@ -48,6 +48,15 @@ export default async function DashboardPage() {
         <h1 className="text-2xl font-bold">{profile?.display_name ?? profile?.full_name ?? "Participante"}</h1>
       </div>
 
+      {(profile?.role === "organizer" || profile?.role === "admin") && (
+        <Link
+          href="/organizador/validacoes"
+          className="block rounded-lg border-2 border-neutral-900 bg-neutral-900 p-3 text-center text-sm font-medium text-white"
+        >
+          Abrir painel do organizador
+        </Link>
+      )}
+
       <Card className="border-2 border-[#F5C518] bg-neutral-950 text-white">
         <CardContent className="flex items-center justify-between pt-6">
           <div>
