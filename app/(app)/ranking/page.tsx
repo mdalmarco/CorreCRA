@@ -2,45 +2,42 @@ import { createClient } from "@/lib/supabase/server";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 
-interface RankRow {
-  participant_id: string;
-  full_name: string;
-  city: string | null;
-  total_points: number;
-}
-
 export default async function RankingPage() {
   const supabase = await createClient();
 
-  const { data: ledger } = await supabase
-    .from("point_ledger")
-    .select("participant_id, points, profiles!inner(full_name, city)")
-    .eq("status", "validated");
+  const { data: challenge } = await supabase
+    .from("challenges")
+    .select("tie_break_rules")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
 
-  const totals = new Map<string, RankRow>();
-  for (const row of (ledger ?? []) as unknown as Array<{
-    participant_id: string;
-    points: number;
-    profiles: { full_name: string; city: string | null };
-  }>) {
-    const current = totals.get(row.participant_id);
-    if (current) {
-      current.total_points += row.points;
-    } else {
-      totals.set(row.participant_id, {
-        participant_id: row.participant_id,
-        full_name: row.profiles.full_name,
-        city: row.profiles.city,
-        total_points: row.points,
-      });
-    }
-  }
+  // ranking_view agrega point_ledger validado no banco (contorna a RLS restritiva
+  // de point_ledger, que so permite leitura do proprio registro), ja trazendo os
+  // contadores usados nos criterios de desempate oficiais do Desafio CRA 2026.
+  const { data: rows } = await supabase
+    .from("ranking_view")
+    .select("*")
+    .order("total_points", { ascending: false });
 
-  const ranked = Array.from(totals.values()).sort((a, b) => b.total_points - a.total_points);
+  const ranked = (rows ?? []).slice().sort((a, b) => {
+    if ((b.total_points ?? 0) !== (a.total_points ?? 0)) return (b.total_points ?? 0) - (a.total_points ?? 0);
+    if ((b.cra_registrations ?? 0) !== (a.cra_registrations ?? 0))
+      return (b.cra_registrations ?? 0) - (a.cra_registrations ?? 0);
+    if ((b.cra_shirt_races ?? 0) !== (a.cra_shirt_races ?? 0))
+      return (b.cra_shirt_races ?? 0) - (a.cra_shirt_races ?? 0);
+    if ((b.weekly_runs ?? 0) !== (a.weekly_runs ?? 0)) return (b.weekly_runs ?? 0) - (a.weekly_runs ?? 0);
+    if ((b.monthly_trainings ?? 0) !== (a.monthly_trainings ?? 0))
+      return (b.monthly_trainings ?? 0) - (a.monthly_trainings ?? 0);
+    return new Date(a.achieved_at ?? 0).getTime() - new Date(b.achieved_at ?? 0).getTime();
+  });
 
   return (
     <div className="mx-auto max-w-3xl p-4 pb-24">
-      <h1 className="mb-4 text-2xl font-bold">Ranking</h1>
+      <h1 className="mb-1 text-2xl font-bold">Ranking</h1>
+      <p className="mb-4 text-xs text-neutral-400">
+        Desempate: {(challenge?.tie_break_rules as string[] | undefined)?.join(" > ") ?? "—"}
+      </p>
       <Table>
         <TableHeader>
           <TableRow>

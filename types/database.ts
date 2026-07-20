@@ -810,7 +810,20 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      ranking_view: {
+        Row: {
+          achieved_at: string | null
+          city: string | null
+          cra_registrations: number | null
+          cra_shirt_races: number | null
+          full_name: string | null
+          monthly_trainings: number | null
+          participant_id: string | null
+          total_points: number | null
+          weekly_runs: number | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       current_profile_id: { Args: never; Returns: string }
