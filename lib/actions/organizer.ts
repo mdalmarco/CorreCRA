@@ -61,14 +61,17 @@ export async function manualPointAdjustment(
   return { success: true };
 }
 
-export async function confirmPayment(participantId: string) {
+export async function confirmPayment(participantId: string, challengeId: string) {
   const { supabase, reviewerId } = await getReviewerProfileId();
   if (!reviewerId) return { error: "Nao autenticado." };
+  if (!challengeId) return { error: "Desafio nao encontrado." };
 
   const { error } = await supabase
-    .from("profiles")
-    .update({ payment_status: "confirmed", participant_status: "active" })
-    .eq("id", participantId);
+    .from("challenge_participants")
+    .upsert(
+      { participant_id: participantId, challenge_id: challengeId, payment_status: "confirmed", status: "active" },
+      { onConflict: "participant_id,challenge_id" }
+    );
 
   if (error) return { error: error.message };
   revalidatePath("/organizador/participantes");
@@ -77,15 +80,18 @@ export async function confirmPayment(participantId: string) {
 
 export async function setParticipantStatus(
   participantId: string,
+  challengeId: string,
   status: "active" | "suspended" | "closed"
 ) {
   const { supabase, reviewerId } = await getReviewerProfileId();
   if (!reviewerId) return { error: "Nao autenticado." };
+  if (!challengeId) return { error: "Desafio nao encontrado." };
 
   const { error } = await supabase
-    .from("profiles")
-    .update({ participant_status: status })
-    .eq("id", participantId);
+    .from("challenge_participants")
+    .update({ status })
+    .eq("participant_id", participantId)
+    .eq("challenge_id", challengeId);
 
   if (error) return { error: error.message };
   revalidatePath("/organizador/participantes");

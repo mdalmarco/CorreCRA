@@ -40,6 +40,17 @@ export async function registerExternalRace(formData: FormData) {
     .maybeSingle();
   if (!challenge) return { error: "Nenhum desafio ativo encontrado." };
 
+  const { data: enrollment } = await supabase
+    .from("challenge_participants")
+    .select("status, payment_status")
+    .eq("participant_id", profile.id)
+    .eq("challenge_id", challenge.id)
+    .maybeSingle();
+
+  if (enrollment?.status !== "active" || enrollment?.payment_status !== "confirmed") {
+    return { error: "Voce precisa ser VIP do desafio (pagamento confirmado) para registrar provas." };
+  }
+
   const { data: activityTypes } = await supabase
     .from("activity_types")
     .select("id, name")

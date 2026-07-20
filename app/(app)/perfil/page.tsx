@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProfileForm } from "./profile-form";
+import { JoinChallengeButton } from "../dashboard/join-challenge-button";
 
 const participantStatusLabel: Record<string, string> = {
   incomplete: "Cadastro incompleto",
@@ -27,21 +28,53 @@ export default async function PerfilPage() {
 
   if (!profile) redirect("/login");
 
+  const { data: challenge } = await supabase
+    .from("challenges")
+    .select("id, name, registration_fee")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data: enrollment } = await supabase
+    .from("challenge_participants")
+    .select("status, payment_status")
+    .eq("participant_id", profile.id)
+    .eq("challenge_id", challenge?.id ?? "")
+    .maybeSingle();
+
+  const isVip = enrollment?.status === "active" && enrollment?.payment_status === "confirmed";
+
   return (
     <div className="mx-auto max-w-lg space-y-4 p-4 pb-24">
       <h1 className="text-2xl font-bold">Meu perfil</h1>
 
       <Card>
         <CardHeader className="pb-2">
-          <CardTitle className="text-base">Status da inscricao</CardTitle>
+          <CardTitle className="text-base">{challenge?.name ?? "Desafio"}</CardTitle>
         </CardHeader>
-        <CardContent className="flex gap-2">
-          <Badge variant={profile.payment_status === "confirmed" ? "default" : "secondary"}>
-            {profile.payment_status === "confirmed" ? "Pagamento confirmado" : "Pagamento pendente"}
-          </Badge>
-          <Badge variant={profile.participant_status === "active" ? "default" : "secondary"}>
-            {participantStatusLabel[profile.participant_status] ?? profile.participant_status}
-          </Badge>
+        <CardContent className="space-y-3">
+          {isVip ? (
+            <div className="flex gap-2">
+              <Badge className="bg-[#F5C518] text-black">VIP</Badge>
+              <Badge>Pagamento confirmado</Badge>
+            </div>
+          ) : enrollment ? (
+            <div className="flex gap-2">
+              <Badge variant="secondary">
+                {participantStatusLabel[enrollment.status] ?? enrollment.status}
+              </Badge>
+              <Badge variant="secondary">
+                {enrollment.payment_status === "confirmed" ? "Pagamento confirmado" : "Pagamento pendente"}
+              </Badge>
+            </div>
+          ) : (
+            <>
+              <p className="text-sm text-neutral-500">
+                Sua conta e livre. Participe do desafio pra pontuar e entrar no ranking.
+              </p>
+              {challenge && <JoinChallengeButton fee={challenge.registration_fee} />}
+            </>
+          )}
         </CardContent>
       </Card>
 

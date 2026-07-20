@@ -10,11 +10,13 @@ export function ParticipantActions({
   challengeId,
   paymentStatus,
   participantStatus,
+  hasEnrollment,
 }: {
   participantId: string;
   challengeId: string;
   paymentStatus: string;
   participantStatus: string;
+  hasEnrollment: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
   const [showAdjust, setShowAdjust] = useState(false);
@@ -41,29 +43,31 @@ export function ParticipantActions({
           <Button
             size="sm"
             disabled={isPending}
-            onClick={() => startTransition(async () => { await confirmPayment(participantId); })}
+            onClick={() => startTransition(async () => { await confirmPayment(participantId, challengeId); })}
           >
-            Confirmar pagamento
+            {hasEnrollment ? "Confirmar pagamento" : "Confirmar pagamento (virar VIP)"}
           </Button>
         )}
-        {participantStatus !== "suspended" ? (
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={isPending}
-            onClick={() => startTransition(async () => { await setParticipantStatus(participantId, "suspended"); })}
-          >
-            Suspender
-          </Button>
-        ) : (
-          <Button
-            size="sm"
-            variant="outline"
-            disabled={isPending}
-            onClick={() => startTransition(async () => { await setParticipantStatus(participantId, "active"); })}
-          >
-            Reativar
-          </Button>
+        {hasEnrollment && (
+          participantStatus !== "suspended" ? (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isPending}
+              onClick={() => startTransition(async () => { await setParticipantStatus(participantId, challengeId, "suspended"); })}
+            >
+              Suspender
+            </Button>
+          ) : (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={isPending}
+              onClick={() => startTransition(async () => { await setParticipantStatus(participantId, challengeId, "active"); })}
+            >
+              Reativar
+            </Button>
+          )
         )}
         <Button size="sm" variant="ghost" onClick={() => setShowAdjust((v) => !v)}>
           Ajustar pontos

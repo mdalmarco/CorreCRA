@@ -28,7 +28,9 @@ export default async function ParticipantesOrgPage({
 
   let query = supabase
     .from("profiles")
-    .select("id, full_name, city, role, participant_status, payment_status")
+    .select(
+      "id, full_name, city, role, challenge_participants(status, payment_status, challenge_id)"
+    )
     .eq("role", "participant")
     .order("full_name", { ascending: true });
 
@@ -36,7 +38,21 @@ export default async function ParticipantesOrgPage({
     query = query.ilike("full_name", `%${q}%`);
   }
 
-  const { data: participants } = await query;
+  const { data: rows } = await query;
+
+  const participants = (rows ?? []).map((p) => {
+    const enrollment = (p.challenge_participants ?? []).find(
+      (e: { challenge_id: string }) => e.challenge_id === challenge?.id
+    );
+    return {
+      id: p.id,
+      full_name: p.full_name,
+      city: p.city,
+      status: enrollment?.status ?? null,
+      payment_status: enrollment?.payment_status ?? null,
+      isVip: enrollment?.status === "active" && enrollment?.payment_status === "confirmed",
+    };
+  });
 
   return (
     <div className="space-y-4">
@@ -51,18 +67,19 @@ export default async function ParticipantesOrgPage({
       </form>
 
       <div className="space-y-2">
-        {(participants ?? []).map((p) => (
+        {participants.map((p) => (
           <Card key={p.id}>
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center justify-between text-base">
                 <span>{p.full_name}</span>
                 <div className="flex gap-1">
-                  <Badge variant={p.payment_status === "confirmed" ? "default" : "secondary"}>
-                    {p.payment_status === "confirmed" ? "Pago" : "Pgto pendente"}
-                  </Badge>
-                  <Badge variant={p.participant_status === "active" ? "default" : "secondary"}>
-                    {participantStatusLabel[p.participant_status] ?? p.participant_status}
-                  </Badge>
+                  {p.isVip ? (
+                    <Badge className="bg-[#F5C518] text-black">VIP</Badge>
+                  ) : (
+                    <Badge variant="secondary">
+                      {p.status ? participantStatusLabel[p.status] ?? p.status : "Nao inscrito no desafio"}
+                    </Badge>
+                  )}
                 </div>
               </CardTitle>
             </CardHeader>
@@ -71,13 +88,14 @@ export default async function ParticipantesOrgPage({
               <ParticipantActions
                 participantId={p.id}
                 challengeId={challenge?.id ?? ""}
-                paymentStatus={p.payment_status}
-                participantStatus={p.participant_status}
+                paymentStatus={p.payment_status ?? "pending"}
+                participantStatus={p.status ?? "incomplete"}
+                hasEnrollment={p.status !== null}
               />
             </CardContent>
           </Card>
         ))}
-        {(participants ?? []).length === 0 && (
+        {participants.length === 0 && (
           <p className="rounded-lg border border-dashed p-8 text-center text-neutral-400">
             Nenhum participante encontrado.
           </p>

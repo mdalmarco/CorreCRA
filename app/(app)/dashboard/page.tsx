@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
+import { JoinChallengeButton } from "./join-challenge-button";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -18,6 +19,23 @@ export default async function DashboardPage() {
     .select("*")
     .eq("user_id", user.id)
     .single();
+
+  const { data: challenge } = await supabase
+    .from("challenges")
+    .select("id, name, registration_fee")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const { data: enrollment } = await supabase
+    .from("challenge_participants")
+    .select("status, payment_status")
+    .eq("participant_id", profile?.id ?? "")
+    .eq("challenge_id", challenge?.id ?? "")
+    .maybeSingle();
+
+  const isVip = enrollment?.status === "active" && enrollment?.payment_status === "confirmed";
+  const isAwaitingPayment = enrollment && !isVip;
 
   const { data: ledger } = await supabase
     .from("point_ledger")
@@ -43,9 +61,12 @@ export default async function DashboardPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 p-4 pb-24">
-      <div>
-        <p className="text-sm text-neutral-500">Ola,</p>
-        <h1 className="text-2xl font-bold">{profile?.display_name ?? profile?.full_name ?? "Participante"}</h1>
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm text-neutral-500">Ola,</p>
+          <h1 className="text-2xl font-bold">{profile?.display_name ?? profile?.full_name ?? "Participante"}</h1>
+        </div>
+        {isVip && <Badge className="bg-[#F5C518] text-black">VIP</Badge>}
       </div>
 
       {(profile?.role === "organizer" || profile?.role === "admin") && (
@@ -58,13 +79,25 @@ export default async function DashboardPage() {
       )}
 
       <Card className="border-2 border-[#F5C518] bg-neutral-950 text-white">
-        <CardContent className="flex items-center justify-between pt-6">
-          <div>
-            <p className="text-sm text-neutral-300">Pontuacao total</p>
-            <p className="text-4xl font-bold text-[#F5C518]">{totalPoints}</p>
+        <CardContent className="space-y-3 pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-neutral-300">Pontuacao total</p>
+              <p className="text-4xl font-bold text-[#F5C518]">{totalPoints}</p>
+            </div>
+            {pendingRequests && pendingRequests.length > 0 && (
+              <Badge variant="secondary">{pendingRequests.length} pendente(s)</Badge>
+            )}
           </div>
-          {pendingRequests && pendingRequests.length > 0 && (
-            <Badge variant="secondary">{pendingRequests.length} pendente(s)</Badge>
+
+          {!isVip && !isAwaitingPayment && challenge && (
+            <JoinChallengeButton fee={challenge.registration_fee} />
+          )}
+          {isAwaitingPayment && (
+            <p className="text-sm text-neutral-300">
+              Aguardando confirmacao do pagamento pelo organizador para virar VIP e comecar a
+              pontuar no {challenge?.name}.
+            </p>
           )}
         </CardContent>
       </Card>
@@ -77,10 +110,23 @@ export default async function DashboardPage() {
         >
           Fazer check-in
         </Button>
-        <Button render={<Link href="/registrar-prova" />} size="lg" variant="outline" className="h-16">
-          Registrar prova
-        </Button>
+        {isVip ? (
+          <Button render={<Link href="/registrar-prova" />} size="lg" variant="outline" className="h-16">
+            Registrar prova
+          </Button>
+        ) : (
+          <Button size="lg" variant="outline" className="h-16" disabled>
+            Registrar prova (VIP)
+          </Button>
+        )}
       </div>
+
+      {!isVip && (
+        <p className="text-center text-xs text-neutral-400">
+          Check-in nos corres e treinoes e livre pra qualquer cadastrado — mas so pontua e entra
+          no ranking quem for VIP do Desafio CRA 2026.
+        </p>
+      )}
 
       {nextEvent && (
         <Card>

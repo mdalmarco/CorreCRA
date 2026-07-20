@@ -60,7 +60,10 @@ export default function CadastroPage() {
       <Card className="w-full max-w-sm border-neutral-200">
         <CardHeader>
           <CardTitle className="text-xl">Participar do Desafio CRA 2026</CardTitle>
-          <CardDescription>Inscricao: R$ 20,00 — confirmada pelo organizador</CardDescription>
+          <CardDescription>
+            Cadastro gratuito. Participe do Desafio CRA 2026 (R$ 20,00) quando quiser, direto do
+            seu perfil.
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSignup} className="space-y-4">
