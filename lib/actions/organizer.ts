@@ -115,6 +115,27 @@ export async function generateEventQrToken(eventId: string) {
   return { success: true, token, expiresAt };
 }
 
+export async function runCranecaDraw(eventId: string) {
+  const { supabase, reviewerId } = await getReviewerProfileId();
+  if (!reviewerId) return { error: "Nao autenticado." };
+
+  const { data, error } = await supabase.rpc("fn_run_craneca_draw", {
+    p_event_id: eventId,
+    p_actor_id: reviewerId,
+  });
+
+  if (error) return { error: error.message };
+
+  const { data: winnerProfile } = await supabase
+    .from("profiles")
+    .select("full_name")
+    .eq("id", data?.winner_participant_id ?? "")
+    .maybeSingle();
+
+  revalidatePath("/organizador/eventos");
+  return { success: true, winnerName: winnerProfile?.full_name ?? "Participante" };
+}
+
 export async function createEvent(formData: FormData) {
   const { supabase, reviewerId } = await getReviewerProfileId();
   if (!reviewerId) return { error: "Nao autenticado." };

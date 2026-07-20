@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { CreateEventForm } from "./create-event-form";
 import { CloseCheckinButton } from "./close-checkin-button";
 import { QrCodeButton } from "./qr-code-button";
+import { CranecaDrawButton } from "./craneca-draw-button";
 
 const statusLabel: Record<string, string> = {
   draft: "Rascunho",
@@ -35,6 +36,17 @@ export default async function EventosOrgPage() {
     .select("id, name, city, status, start_at, checkin_code, points, qr_token, qr_token_expires_at")
     .order("start_at", { ascending: false });
 
+  const { data: cranecaDraws } = await supabase
+    .from("draws")
+    .select("event_id, profiles!draws_winner_participant_id_fkey(full_name)")
+    .eq("draw_type", "craneca");
+
+  const cranecaByEvent = new Map<string, string>();
+  for (const d of cranecaDraws ?? []) {
+    const profile = Array.isArray(d.profiles) ? d.profiles[0] : d.profiles;
+    if (d.event_id && profile?.full_name) cranecaByEvent.set(d.event_id, profile.full_name);
+  }
+
   return (
     <div className="space-y-4">
       <h1 className="text-xl font-bold">Eventos</h1>
@@ -65,6 +77,9 @@ export default async function EventosOrgPage() {
               </div>
               {ev.status === "checkin_open" && (
                 <QrCodeButton eventId={ev.id} qrToken={ev.qr_token} qrTokenExpiresAt={ev.qr_token_expires_at} />
+              )}
+              {ev.status === "checkin_closed" && (
+                <CranecaDrawButton eventId={ev.id} existingWinnerName={cranecaByEvent.get(ev.id) ?? null} />
               )}
             </CardContent>
           </Card>

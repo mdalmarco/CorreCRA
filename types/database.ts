@@ -250,6 +250,7 @@ export type Database = {
         Row: {
           challenge_id: string
           created_at: string
+          draw_type: string
           eligibility_rule: Json | null
           event_id: string | null
           executed_at: string | null
@@ -263,6 +264,7 @@ export type Database = {
         Insert: {
           challenge_id: string
           created_at?: string
+          draw_type?: string
           eligibility_rule?: Json | null
           event_id?: string | null
           executed_at?: string | null
@@ -276,6 +278,7 @@ export type Database = {
         Update: {
           challenge_id?: string
           created_at?: string
+          draw_type?: string
           eligibility_rule?: Json | null
           event_id?: string | null
           executed_at?: string | null
@@ -958,6 +961,29 @@ export type Database = {
         SetofOptions: {
           from: "*"
           to: "point_requests"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_run_craneca_draw: {
+        Args: { p_actor_id: string; p_event_id: string }
+        Returns: {
+          challenge_id: string
+          created_at: string
+          draw_type: string
+          eligibility_rule: Json | null
+          event_id: string | null
+          executed_at: string | null
+          executed_by: string | null
+          id: string
+          name: string
+          random_seed: string | null
+          status: Database["public"]["Enums"]["draw_status"]
+          winner_participant_id: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "draws"
           isOneToOne: true
           isSetofReturn: false
         }
