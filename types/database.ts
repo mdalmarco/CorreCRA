@@ -858,6 +858,15 @@ export type Database = {
       }
     }
     Views: {
+      event_attendance_view: {
+        Row: {
+          checked_in_at: string | null
+          event_id: string | null
+          full_name: string | null
+          participant_id: string | null
+        }
+        Relationships: []
+      }
       ranking_view: {
         Row: {
           achieved_at: string | null

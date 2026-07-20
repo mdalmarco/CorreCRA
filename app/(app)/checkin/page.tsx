@@ -20,6 +20,8 @@ export default function CheckinPage() {
   const [eventName, setEventName] = useState("");
   const [pointsEarned, setPointsEarned] = useState<number | null>(null);
   const [isVip, setIsVip] = useState(true);
+  const [attendees, setAttendees] = useState<string[]>([]);
+  const [attendeesTotal, setAttendeesTotal] = useState(0);
 
   async function performCheckin(method: CheckinMethod, lookup: { checkin_code?: string; qr_token?: string }) {
     setStatus("loading");
@@ -86,6 +88,16 @@ export default function CheckinPage() {
     setIsVip(vip);
     setEventName(event.name);
     setPointsEarned(vip ? event.points : null);
+
+    const { data: attendanceRows } = await supabase
+      .from("event_attendance_view")
+      .select("participant_id, full_name")
+      .eq("event_id", event.id);
+
+    const others = (attendanceRows ?? []).filter((a) => a.participant_id !== profile.id);
+    setAttendeesTotal(others.length);
+    setAttendees(others.slice(0, 5).map((a) => a.full_name ?? "").filter(Boolean));
+
     setStatus("success");
   }
 
@@ -188,6 +200,21 @@ export default function CheckinPage() {
             >
               Participar do desafio
             </Link>
+          </CardContent>
+        </Card>
+      )}
+
+      {status === "success" && attendeesTotal > 0 && (
+        <Card>
+          <CardContent className="pt-4 text-sm text-neutral-600">
+            {attendees.length > 0 ? (
+              <p>
+                Correu junto hoje: <strong>{attendees.join(", ")}</strong>
+                {attendeesTotal > attendees.length && ` e mais ${attendeesTotal - attendees.length}`}
+              </p>
+            ) : (
+              <p>Mais {attendeesTotal} pessoa(s) fizeram check-in nesse corre.</p>
+            )}
           </CardContent>
         </Card>
       )}

@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ProfileForm } from "./profile-form";
 import { JoinChallengeButton } from "../dashboard/join-challenge-button";
+import { computeBadges } from "@/lib/badges";
+import { computeWeeklyStreak } from "@/lib/streak";
 
 const participantStatusLabel: Record<string, string> = {
   incomplete: "Cadastro incompleto",
@@ -44,6 +46,41 @@ export default async function PerfilPage() {
 
   const isVip = enrollment?.status === "active" && enrollment?.payment_status === "confirmed";
 
+  const { data: checkins } = await supabase
+    .from("event_checkins")
+    .select("checked_in_at, events!inner(activity_types(name))")
+    .eq("participant_id", profile.id)
+    .eq("status", "valid");
+
+  const { data: ledgerEntries } = await supabase
+    .from("point_ledger")
+    .select("activity_types(name)")
+    .eq("participant_id", profile.id)
+    .eq("status", "validated");
+
+  const weeklyStreak = computeWeeklyStreak(
+    (checkins ?? [])
+      .filter((c) => {
+        const at = Array.isArray(c.events) ? c.events[0]?.activity_types : c.events?.activity_types;
+        const name = Array.isArray(at) ? at[0]?.name : at?.name;
+        return name === "Corre semanal";
+      })
+      .map((c) => c.checked_in_at)
+  );
+
+  const badges = computeBadges({
+    checkinActivityNames: (checkins ?? []).map((c) => {
+      const at = Array.isArray(c.events) ? c.events[0]?.activity_types : c.events?.activity_types;
+      const name = Array.isArray(at) ? at[0]?.name : at?.name;
+      return name ?? "";
+    }),
+    ledgerActivityNames: (ledgerEntries ?? []).map((l) => {
+      const at = Array.isArray(l.activity_types) ? l.activity_types[0] : l.activity_types;
+      return at?.name ?? "";
+    }),
+    weeklyStreak,
+  });
+
   return (
     <div className="mx-auto max-w-lg space-y-4 p-4 pb-24">
       <h1 className="text-2xl font-bold">Meu perfil</h1>
@@ -75,6 +112,27 @@ export default async function PerfilPage() {
               {challenge && <JoinChallengeButton fee={challenge.registration_fee} />}
             </>
           )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base">Conquistas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-2">
+            {badges.map((b) => (
+              <div
+                key={b.id}
+                className={`flex items-center gap-2 rounded-lg border p-2 text-sm ${
+                  b.earned ? "border-[#F5C518] bg-[#F5C518]/10" : "opacity-40 grayscale"
+                }`}
+              >
+                <span className="text-lg">{b.emoji}</span>
+                <span>{b.label}</span>
+              </div>
+            ))}
+          </div>
         </CardContent>
       </Card>
 
