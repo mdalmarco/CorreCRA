@@ -29,26 +29,15 @@ export default function CadastroPage() {
       options: { data: { full_name: fullName } },
     });
 
+    setLoading(false);
     if (signUpError || !data.user) {
-      setLoading(false);
       setError(signUpError?.message ?? "Nao foi possivel criar a conta.");
       return;
     }
 
-    const { error: profileError } = await supabase.from("profiles").insert({
-      user_id: data.user.id,
-      full_name: fullName,
-      email,
-      role: "participant",
-      participant_status: "incomplete",
-      payment_status: "pending",
-    });
-
-    setLoading(false);
-    if (profileError) {
-      setError("Conta criada, mas houve um erro ao completar o perfil. Fale com um organizador.");
-      return;
-    }
+    // O perfil e criado automaticamente por um trigger no banco (on_auth_user_created),
+    // entao nao precisamos inserir aqui — evita falha de RLS quando a confirmacao de
+    // e-mail esta ativa e ainda nao ha sessao autenticada nesse momento.
     setDone(true);
     setTimeout(() => router.push("/login"), 2000);
   }
