@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { JoinChallengeButton } from "./join-challenge-button";
+import { getLevelProgress } from "@/lib/levels";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -44,6 +45,7 @@ export default async function DashboardPage() {
     .eq("status", "validated");
 
   const totalPoints = (ledger ?? []).reduce((sum: number, l: { points: number }) => sum + l.points, 0);
+  const level = getLevelProgress(totalPoints);
 
   const { data: pendingRequests } = await supabase
     .from("point_requests")
@@ -82,13 +84,33 @@ export default async function DashboardPage() {
         <CardContent className="space-y-3 pt-6">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-sm text-neutral-300">Pontuacao total</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-neutral-300">Pontuacao total</p>
+                {isVip && <Badge variant="secondary">{level.levelName}</Badge>}
+              </div>
               <p className="text-4xl font-bold text-[#F5C518]">{totalPoints}</p>
             </div>
             {pendingRequests && pendingRequests.length > 0 && (
               <Badge variant="secondary">{pendingRequests.length} pendente(s)</Badge>
             )}
           </div>
+
+          {isVip && level.nextLevelName && (
+            <div className="space-y-1">
+              <div className="h-2 overflow-hidden rounded-full bg-neutral-800">
+                <div
+                  className="h-full rounded-full bg-[#F5C518]"
+                  style={{ width: `${level.progressPercent}%` }}
+                />
+              </div>
+              <p className="text-xs text-neutral-400">
+                Faltam {level.pointsToNext} pts pra virar {level.nextLevelName}
+              </p>
+            </div>
+          )}
+          {isVip && !level.nextLevelName && (
+            <p className="text-xs text-neutral-400">Nivel maximo alcancado — voce e Diamante! 💎</p>
+          )}
 
           {!isVip && !isAwaitingPayment && challenge && (
             <JoinChallengeButton fee={challenge.registration_fee} />

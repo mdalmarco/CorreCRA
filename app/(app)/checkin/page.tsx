@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,6 +17,9 @@ export default function CheckinPage() {
   const [code, setCode] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [eventName, setEventName] = useState("");
+  const [pointsEarned, setPointsEarned] = useState<number | null>(null);
+  const [isVip, setIsVip] = useState(true);
 
   async function performCheckin(method: CheckinMethod, lookup: { checkin_code?: string; qr_token?: string }) {
     setStatus("loading");
@@ -33,7 +37,10 @@ export default function CheckinPage() {
       .eq("user_id", userData.user.id)
       .single();
 
-    let query = supabase.from("events").select("id, qr_token_expires_at").eq("status", "checkin_open");
+    let query = supabase
+      .from("events")
+      .select("id, name, points, challenge_id, qr_token_expires_at")
+      .eq("status", "checkin_open");
     if (lookup.checkin_code) query = query.eq("checkin_code", lookup.checkin_code);
     if (lookup.qr_token) query = query.eq("qr_token", lookup.qr_token);
 
@@ -55,6 +62,15 @@ export default function CheckinPage() {
       return;
     }
 
+    const { data: enrollment } = await supabase
+      .from("challenge_participants")
+      .select("status, payment_status")
+      .eq("participant_id", profile.id)
+      .eq("challenge_id", event.challenge_id)
+      .maybeSingle();
+
+    const vip = enrollment?.status === "active" && enrollment?.payment_status === "confirmed";
+
     const { error } = await supabase.rpc("fn_do_checkin", {
       p_event_id: event.id,
       p_participant_id: profile.id,
@@ -67,8 +83,10 @@ export default function CheckinPage() {
       return;
     }
 
+    setIsVip(vip);
+    setEventName(event.name);
+    setPointsEarned(vip ? event.points : null);
     setStatus("success");
-    setMessage("Check-in confirmado! Pontos creditados.");
   }
 
   function handleCodeSubmit(e: React.FormEvent) {
@@ -147,9 +165,34 @@ export default function CheckinPage() {
         </Card>
       )}
 
-      {message && (
-        <p className={status === "error" ? "text-sm text-red-600" : "text-sm text-green-600"}>{message}</p>
+      {status === "success" && isVip && (
+        <Card className="border-2 border-[#F5C518] bg-neutral-950 text-white">
+          <CardContent className="space-y-1 pt-6 text-center">
+            <p className="text-sm text-neutral-300">Check-in confirmado em {eventName}</p>
+            <p className="text-3xl font-bold text-[#F5C518]">+{pointsEarned} pontos</p>
+          </CardContent>
+        </Card>
       )}
+
+      {status === "success" && !isVip && (
+        <Card className="border-dashed">
+          <CardContent className="space-y-2 pt-6 text-center">
+            <p className="font-medium">Presença registrada em {eventName} ✓</p>
+            <p className="text-sm text-neutral-500">
+              Sua conta e livre, entao esse check-in nao vale pontos ainda. Participe do Desafio
+              CRA 2026 pra pontuar a partir do proximo corre.
+            </p>
+            <Link
+              href="/dashboard"
+              className="inline-block rounded-lg bg-[#F5C518] px-4 py-2 text-sm font-semibold text-black"
+            >
+              Participar do desafio
+            </Link>
+          </CardContent>
+        </Card>
+      )}
+
+      {status === "error" && message && <p className="text-sm text-red-600">{message}</p>}
     </div>
   );
 }

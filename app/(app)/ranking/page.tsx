@@ -1,9 +1,24 @@
 import { createClient } from "@/lib/supabase/server";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 
 export default async function RankingPage() {
   const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  let myProfileId: string | null = null;
+  if (user) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    myProfileId = profile?.id ?? null;
+  }
 
   const { data: challenge } = await supabase
     .from("challenges")
@@ -32,12 +47,35 @@ export default async function RankingPage() {
     return new Date(a.achieved_at ?? 0).getTime() - new Date(b.achieved_at ?? 0).getTime();
   });
 
+  const myIndex = myProfileId ? ranked.findIndex((r) => r.participant_id === myProfileId) : -1;
+  const myRow = myIndex >= 0 ? ranked[myIndex] : null;
+  const nextAbove = myIndex > 0 ? ranked[myIndex - 1] : null;
+  const gapToNext = nextAbove ? (nextAbove.total_points ?? 0) - (myRow?.total_points ?? 0) : 0;
+
   return (
     <div className="mx-auto max-w-3xl p-4 pb-24">
       <h1 className="mb-1 text-2xl font-bold">Ranking</h1>
       <p className="mb-4 text-xs text-neutral-400">
         Desempate: {(challenge?.tie_break_rules as string[] | undefined)?.join(" > ") ?? "—"}
       </p>
+
+      {myRow && (
+        <div className="mb-4 rounded-lg border-2 border-[#F5C518] bg-neutral-950 p-4 text-white">
+          <p className="text-sm text-neutral-300">Sua posicao</p>
+          <p className="text-2xl font-bold text-[#F5C518]">
+            {myIndex + 1}º lugar — {myRow.total_points} pts
+          </p>
+          {nextAbove ? (
+            <p className="mt-1 text-sm text-neutral-300">
+              Faltam <strong className="text-white">{gapToNext} pts</strong> pra alcancar{" "}
+              {nextAbove.full_name} ({myIndex}º lugar)
+            </p>
+          ) : (
+            <p className="mt-1 text-sm text-neutral-300">Voce esta na lideranca! 🏆</p>
+          )}
+        </div>
+      )}
+
       <Table>
         <TableHeader>
           <TableRow>
@@ -49,11 +87,17 @@ export default async function RankingPage() {
         </TableHeader>
         <TableBody>
           {ranked.map((r, i) => (
-            <TableRow key={r.participant_id}>
+            <TableRow
+              key={r.participant_id}
+              className={cn(r.participant_id === myProfileId && "bg-[#F5C518]/10")}
+            >
               <TableCell className="font-medium">
                 {i < 3 ? <Badge className="bg-[#F5C518] text-black">{i + 1}</Badge> : i + 1}
               </TableCell>
-              <TableCell>{r.full_name}</TableCell>
+              <TableCell>
+                {r.full_name}
+                {r.participant_id === myProfileId && <span className="ml-1 text-xs text-neutral-400">(voce)</span>}
+              </TableCell>
               <TableCell className="text-neutral-500">{r.city ?? "—"}</TableCell>
               <TableCell className="text-right font-bold">{r.total_points}</TableCell>
             </TableRow>
