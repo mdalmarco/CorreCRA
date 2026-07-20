@@ -20,22 +20,27 @@ export default async function OrgLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="min-h-svh bg-neutral-50 pb-16">
-      <header className="sticky top-0 z-40 border-b bg-white">
-        <div className="mx-auto flex max-w-4xl items-center gap-4 overflow-x-auto px-4 py-3 text-sm">
-          <span className="shrink-0 font-bold">Painel do organizador</span>
-          <nav className="flex gap-4 text-neutral-500">
-            <Link href="/organizador/validações" className="hover:text-neutral-900">
+    <div className="min-h-svh bg-[#0a0a0b] pb-16 text-[#f5f5f0]">
+      <header className="sticky top-0 z-40 border-b border-[#2c2c32] bg-[#0a0a0b]/95 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-4xl items-center gap-5 overflow-x-auto px-4 py-3 text-sm">
+          <span className="shrink-0 font-[family-name:var(--font-display)] text-lg tracking-wide text-[#F5C518]">
+            PAINEL DO ORGANIZADOR
+          </span>
+          <nav className="flex gap-4 text-[#9a9aa2]">
+            <Link href="/organizador/validacoes" className="whitespace-nowrap hover:text-[#f5f5f0]">
               Validações
             </Link>
-            <Link href="/organizador/eventos" className="hover:text-neutral-900">
+            <Link href="/organizador/eventos" className="whitespace-nowrap hover:text-[#f5f5f0]">
               Eventos
             </Link>
-            <Link href="/organizador/participantes" className="hover:text-neutral-900">
+            <Link href="/organizador/participantes" className="whitespace-nowrap hover:text-[#f5f5f0]">
               Participantes
             </Link>
           </nav>
-          <Link href="/dashboard" className="ml-auto shrink-0 text-neutral-400 hover:text-neutral-900">
+          <Link
+            href="/dashboard"
+            className="ml-auto shrink-0 whitespace-nowrap text-[#6f6f78] hover:text-[#f5f5f0]"
+          >
             Voltar
           </Link>
         </div>

@@ -51,7 +51,7 @@ export default async function EventosOrgPage() {
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">Eventos</h1>
+      <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-wide text-[#f5f5f0]">EVENTOS</h1>
       <CreateEventForm activityTypes={activityTypes ?? []} />
 
       <div className="space-y-2">
@@ -65,7 +65,7 @@ export default async function EventosOrgPage() {
                 </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-3 text-sm text-neutral-500">
+            <CardContent className="space-y-3 text-sm text-[#9a9aa2]">
               <div className="flex items-center justify-between">
                 <div>
                   <p>

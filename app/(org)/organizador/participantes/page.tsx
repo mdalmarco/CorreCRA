@@ -56,7 +56,7 @@ export default async function ParticipantesOrgPage({
 
   return (
     <div className="space-y-4">
-      <h1 className="text-xl font-bold">Participantes</h1>
+      <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-wide text-[#f5f5f0]">PARTICIPANTES</h1>
       <form className="flex gap-2">
         <input
           name="q"
@@ -84,7 +84,7 @@ export default async function ParticipantesOrgPage({
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <p className="text-sm text-neutral-500">{p.city ?? "Sem cidade"}</p>
+              <p className="text-sm text-[#9a9aa2]">{p.city ?? "Sem cidade"}</p>
               <ParticipantActions
                 participantId={p.id}
                 challengeId={challenge?.id ?? ""}

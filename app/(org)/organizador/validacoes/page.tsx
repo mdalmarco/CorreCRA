@@ -29,7 +29,7 @@ export default async function ValidaçõesPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold">Central de validações</h1>
+        <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-wide text-[#f5f5f0]">CENTRAL DE VALIDAÇÕES</h1>
         <Badge variant="secondary">{pending.length} pendente(s)</Badge>
       </div>
 
@@ -49,7 +49,7 @@ export default async function ValidaçõesPage() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              <p className="text-sm text-neutral-500">
+              <p className="text-sm text-[#9a9aa2]">
                 {req.external_races?.name} — {req.external_races?.race_date} —{" "}
                 {req.profiles?.city ?? "sem cidade"}
               </p>

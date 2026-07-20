@@ -35,7 +35,7 @@ export async function reviewPointRequest(
   });
 
   if (error) return { error: error.message };
-  revalidatePath("/organizador/validações");
+  revalidatePath("/organizador/validacoes");
   return { success: true };
 }
 

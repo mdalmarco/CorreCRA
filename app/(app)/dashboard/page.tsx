@@ -153,7 +153,7 @@ export default async function DashboardPage() {
 
       {(profile?.role === "organizer" || profile?.role === "admin") && (
         <Link
-          href="/organizador/validações"
+          href="/organizador/validacoes"
           className="block rounded-xl border border-[#2c2c32] bg-[#17171a] p-3 text-center text-sm font-medium text-[#f5f5f0]"
         >
           Abrir painel do organizador

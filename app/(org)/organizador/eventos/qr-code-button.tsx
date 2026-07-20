@@ -51,7 +51,7 @@ export function QrCodeButton({
       {open && token && !expired && (
         <div className="flex flex-col items-center gap-2 rounded-lg border bg-white p-4">
           <QRCodeSVG value={token} size={180} />
-          <p className="text-xs text-neutral-500">
+          <p className="text-xs text-[#9a9aa2]">
             Expira em {new Date(expiresAt!).toLocaleTimeString("pt-BR")}
           </p>
         </div>
