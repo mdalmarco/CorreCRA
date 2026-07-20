@@ -1,12 +1,8 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QrScanner } from "./qr-scanner";
 
 type CheckinMethod = "event_code" | "qr_code";
@@ -22,10 +18,26 @@ export default function CheckinPage() {
   const [isVip, setIsVip] = useState(true);
   const [attendees, setAttendees] = useState<string[]>([]);
   const [attendeesTotal, setAttendeesTotal] = useState(0);
+  const confettiFired = useRef(false);
+
+  useEffect(() => {
+    if (status === "success" && isVip && !confettiFired.current) {
+      confettiFired.current = true;
+      import("canvas-confetti").then(({ default: confetti }) => {
+        confetti({
+          particleCount: 120,
+          spread: 90,
+          origin: { y: 0.4 },
+          colors: ["#F5C518", "#C9A227", "#B6FF3C", "#ffffff"],
+        });
+      });
+    }
+  }, [status, isVip]);
 
   async function performCheckin(method: CheckinMethod, lookup: { checkin_code?: string; qr_token?: string }) {
     setStatus("loading");
     setMessage("");
+    confettiFired.current = false;
 
     const { data: userData } = await supabase.auth.getUser();
     if (!userData.user) {
@@ -52,8 +64,8 @@ export default function CheckinPage() {
       setStatus("error");
       setMessage(
         method === "qr_code"
-          ? "QR Code invalido, expirado ou check-in nao esta aberto."
-          : "Codigo invalido ou check-in nao esta aberto."
+          ? "QR Code invalido ou expirado. Confere com o organizador."
+          : "Codigo invalido. Confere e tenta de novo."
       );
       return;
     }
@@ -107,119 +119,119 @@ export default function CheckinPage() {
   }
 
   const handleQrScan = useCallback((decodedText: string) => {
-    // QR encoda apenas o qr_token bruto (gerado pelo organizador, expira em 4h)
     performCheckin("qr_code", { qr_token: decodedText.trim() });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  return (
-    <div className="mx-auto max-w-md space-y-4 p-4 pb-24">
-      <h1 className="text-2xl font-bold">Check-in</h1>
-
-      <div className="flex gap-2">
-        <Button
-          size="sm"
-          variant={tab === "codigo" ? "default" : "outline"}
-          onClick={() => setTab("codigo")}
-        >
-          Digitar codigo
-        </Button>
-        <Button
-          size="sm"
-          variant={tab === "qrcode" ? "default" : "outline"}
-          onClick={() => setTab("qrcode")}
-        >
-          Escanear QR Code
-        </Button>
-      </div>
-
-      {tab === "codigo" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Digitar codigo do evento</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleCodeSubmit} className="space-y-3">
-              <div className="space-y-2">
-                <Label htmlFor="code">Codigo</Label>
-                <Input
-                  id="code"
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  placeholder="Ex: CRA482"
-                  className="text-center text-lg tracking-widest uppercase"
-                  required
-                />
-              </div>
-              <Button
-                type="submit"
-                className="w-full bg-[#F5C518] text-black hover:bg-[#e0b310]"
-                disabled={status === "loading"}
-              >
-                {status === "loading" ? "Confirmando..." : "Confirmar check-in"}
-              </Button>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-
-      {tab === "qrcode" && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Aponte a camera para o QR Code</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <QrScanner active={tab === "qrcode" && status !== "success"} onScan={handleQrScan} />
-            {status === "loading" && (
-              <p className="mt-2 text-center text-sm text-neutral-500">Confirmando...</p>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
-      {status === "success" && isVip && (
-        <Card className="border-2 border-[#F5C518] bg-neutral-950 text-white">
-          <CardContent className="space-y-1 pt-6 text-center">
-            <p className="text-sm text-neutral-300">Check-in confirmado em {eventName}</p>
-            <p className="text-3xl font-bold text-[#F5C518]">+{pointsEarned} pontos</p>
-          </CardContent>
-        </Card>
-      )}
-
-      {status === "success" && !isVip && (
-        <Card className="border-dashed">
-          <CardContent className="space-y-2 pt-6 text-center">
-            <p className="font-medium">Presença registrada em {eventName} ✓</p>
-            <p className="text-sm text-neutral-500">
-              Sua conta e livre, entao esse check-in nao vale pontos ainda. Participe do Desafio
-              CRA 2026 pra pontuar a partir do proximo corre.
+  if (status === "success") {
+    return (
+      <div className="mx-auto flex min-h-svh max-w-md flex-col items-center justify-center gap-4 p-6 pb-24 text-center">
+        {isVip ? (
+          <>
+            <span className="text-5xl">🔥</span>
+            <p className="font-[family-name:var(--font-display)] text-3xl tracking-wide text-[#f5f5f0]">
+              BOA! CHECK-IN CONFIRMADO
+            </p>
+            <p className="text-sm text-[#9a9aa2]">{eventName}</p>
+            <p className="font-[family-name:var(--font-display)] text-5xl text-[#F5C518]">
+              +{pointsEarned} pts
+            </p>
+          </>
+        ) : (
+          <>
+            <span className="text-5xl">✓</span>
+            <p className="font-[family-name:var(--font-display)] text-2xl tracking-wide text-[#f5f5f0]">
+              PRESENCA REGISTRADA
+            </p>
+            <p className="text-sm text-[#9a9aa2]">{eventName}</p>
+            <p className="max-w-xs text-sm text-[#9a9aa2]">
+              Sua conta e livre, entao esse check-in ainda nao vale pontos. Entre no Desafio CRA
+              2026 pra comecar a subir de nivel a partir do proximo corre.
             </p>
             <Link
               href="/dashboard"
-              className="inline-block rounded-lg bg-[#F5C518] px-4 py-2 text-sm font-semibold text-black"
+              className="rounded-xl bg-[#F5C518] px-6 py-3 text-sm font-bold text-black"
             >
               Participar do desafio
             </Link>
-          </CardContent>
-        </Card>
-      )}
+          </>
+        )}
 
-      {status === "success" && attendeesTotal > 0 && (
-        <Card>
-          <CardContent className="pt-4 text-sm text-neutral-600">
+        {attendeesTotal > 0 && (
+          <div className="mt-2 rounded-2xl border border-[#2c2c32] bg-[#17171a] px-4 py-3 text-sm text-[#9a9aa2]">
             {attendees.length > 0 ? (
               <p>
-                Correu junto hoje: <strong>{attendees.join(", ")}</strong>
+                Correu junto hoje: <strong className="text-[#f5f5f0]">{attendees.join(", ")}</strong>
                 {attendeesTotal > attendees.length && ` e mais ${attendeesTotal - attendees.length}`}
               </p>
             ) : (
               <p>Mais {attendeesTotal} pessoa(s) fizeram check-in nesse corre.</p>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        )}
+
+        <Link href="/dashboard" className="mt-4 text-xs text-[#6f6f78] underline">
+          Voltar ao inicio
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mx-auto max-w-md space-y-4 p-4 pb-24">
+      <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-wide text-[#f5f5f0]">
+        CHECK-IN
+      </h1>
+
+      <div className="flex gap-2">
+        <button
+          onClick={() => setTab("codigo")}
+          className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+            tab === "codigo" ? "bg-[#F5C518] text-black" : "border border-[#2c2c32] text-[#9a9aa2]"
+          }`}
+        >
+          Digitar codigo
+        </button>
+        <button
+          onClick={() => setTab("qrcode")}
+          className={`rounded-full px-4 py-1.5 text-sm font-medium transition-colors ${
+            tab === "qrcode" ? "bg-[#F5C518] text-black" : "border border-[#2c2c32] text-[#9a9aa2]"
+          }`}
+        >
+          Escanear QR Code
+        </button>
+      </div>
+
+      {tab === "codigo" && (
+        <div className="cra-glass rounded-2xl p-5">
+          <form onSubmit={handleCodeSubmit} className="space-y-3">
+            <input
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              placeholder="Ex: CRA482"
+              className="w-full rounded-xl border border-[#2c2c32] bg-[#0a0a0b] px-4 py-3 text-center text-lg uppercase tracking-widest text-[#f5f5f0] placeholder:text-[#4a4a52]"
+              required
+            />
+            <button
+              type="submit"
+              disabled={status === "loading"}
+              className="w-full rounded-xl bg-[#F5C518] py-3 text-sm font-bold text-black disabled:opacity-50"
+            >
+              {status === "loading" ? "Confirmando..." : "Confirmar check-in"}
+            </button>
+          </form>
+        </div>
       )}
 
-      {status === "error" && message && <p className="text-sm text-red-600">{message}</p>}
+      {tab === "qrcode" && (
+        <div className="cra-glass rounded-2xl p-5">
+          <p className="mb-3 text-center text-sm text-[#9a9aa2]">Aponte a camera para o QR Code</p>
+          <QrScanner active={tab === "qrcode"} onScan={handleQrScan} />
+          {status === "loading" && <p className="mt-2 text-center text-sm text-[#9a9aa2]">Confirmando...</p>}
+        </div>
+      )}
+
+      {status === "error" && message && <p className="text-sm text-red-400">{message}</p>}
     </div>
   );
 }

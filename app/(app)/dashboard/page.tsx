@@ -1,12 +1,11 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { JoinChallengeButton } from "./join-challenge-button";
 import { getLevelProgress } from "@/lib/levels";
 import { computeWeeklyStreak } from "@/lib/streak";
+import { computeBadges } from "@/lib/badges";
+import { Trophy, Flame, ChevronRight, ScanLine } from "lucide-react";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -41,11 +40,11 @@ export default async function DashboardPage() {
 
   const { data: ledger } = await supabase
     .from("point_ledger")
-    .select("points, status")
+    .select("points, status, activity_types(name)")
     .eq("participant_id", profile?.id ?? "")
     .eq("status", "validated");
 
-  const totalPoints = (ledger ?? []).reduce((sum: number, l: { points: number }) => sum + l.points, 0);
+  const totalPoints = (ledger ?? []).reduce((sum: number, l) => sum + Number(l.points), 0);
   const level = getLevelProgress(totalPoints);
 
   const { data: pendingRequests } = await supabase
@@ -54,142 +53,267 @@ export default async function DashboardPage() {
     .eq("participant_id", profile?.id ?? "")
     .in("status", ["submitted", "in_review", "complement_requested"]);
 
-  const { data: weeklyCheckins } = await supabase
+  const { data: allCheckins } = await supabase
     .from("event_checkins")
-    .select("checked_in_at, events!inner(activity_types!inner(name))")
+    .select("checked_in_at, events!inner(activity_types(name))")
     .eq("participant_id", profile?.id ?? "")
-    .eq("status", "valid")
-    .eq("events.activity_types.name", "Corre semanal");
+    .eq("status", "valid");
 
-  const streak = computeWeeklyStreak((weeklyCheckins ?? []).map((c) => c.checked_in_at));
+  function activityName(c: { events: unknown }): string {
+    const at = Array.isArray(c.events)
+      ? (c.events[0] as { activity_types?: unknown })?.activity_types
+      : (c.events as { activity_types?: unknown })?.activity_types;
+    const a = Array.isArray(at) ? at[0] : at;
+    return (a as { name?: string })?.name ?? "";
+  }
 
-  const { data: nextEvent } = await supabase
+  const weeklyRunDates = (allCheckins ?? [])
+    .filter((c) => activityName(c) === "Corre semanal")
+    .map((c) => c.checked_in_at);
+  const streak = computeWeeklyStreak(weeklyRunDates);
+
+  const badges = computeBadges({
+    checkinActivityNames: (allCheckins ?? []).map(activityName),
+    ledgerActivityNames: (ledger ?? []).map((l) => {
+      const at = Array.isArray(l.activity_types) ? l.activity_types[0] : l.activity_types;
+      return at?.name ?? "";
+    }),
+    weeklyStreak: streak,
+  });
+  const recentBadges = badges.filter((b) => b.earned).slice(-4);
+
+  const now = new Date();
+  const todayStart = new Date(now);
+  todayStart.setHours(0, 0, 0, 0);
+  const todayEnd = new Date(now);
+  todayEnd.setHours(23, 59, 59, 999);
+
+  const { data: todaysEvent } = await supabase
     .from("events")
-    .select("name, city, start_at")
-    .in("status", ["scheduled", "checkin_open"])
-    .gte("start_at", new Date().toISOString())
+    .select("id, name, city, start_at, location")
+    .eq("status", "checkin_open")
+    .gte("start_at", todayStart.toISOString())
+    .lte("start_at", todayEnd.toISOString())
     .order("start_at", { ascending: true })
     .limit(1)
     .maybeSingle();
 
+  let attendeeNames: string[] = [];
+  let attendeeCount = 0;
+  if (todaysEvent) {
+    const { data: attendance } = await supabase
+      .from("event_attendance_view")
+      .select("full_name")
+      .eq("event_id", todaysEvent.id);
+    attendeeCount = attendance?.length ?? 0;
+    attendeeNames = (attendance ?? []).slice(0, 4).map((a) => a.full_name ?? "").filter(Boolean);
+  }
+
+  const { data: rankingRows } = await supabase
+    .from("ranking_view")
+    .select("participant_id, full_name, total_points")
+    .order("total_points", { ascending: false })
+    .limit(3);
+
+  const missionText = todaysEvent
+    ? `Hoje tem corre em ${todaysEvent.city}. Faca check-in e some pontos.`
+    : isVip
+      ? `Faltam ${level.pointsToNext || "poucos"} pts pro nivel ${level.nextLevelName ?? "maximo"}.`
+      : "Participe do desafio pra comecar a subir de nivel.";
+
   return (
-    <div className="mx-auto max-w-3xl space-y-6 p-4 pb-24">
-      <div className="flex items-center justify-between">
+    <div className="mx-auto max-w-3xl space-y-5 p-4 pb-28">
+      {/* Saudacao + streak */}
+      <div className="flex items-center justify-between pt-1">
         <div>
-          <p className="text-sm text-neutral-500">Ola,</p>
-          <h1 className="text-2xl font-bold">{profile?.display_name ?? profile?.full_name ?? "Participante"}</h1>
+          <p className="text-sm text-[#9a9aa2]">Ola,</p>
+          <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-wide text-[#f5f5f0]">
+            {(profile?.display_name ?? profile?.full_name ?? "atleta").toUpperCase()} 👋
+          </h1>
         </div>
-        <div className="flex flex-col items-end gap-1">
-          {isVip && <Badge className="bg-[#F5C518] text-black">VIP</Badge>}
-          {streak > 0 && (
-            <span className="text-sm font-medium text-orange-600">
-              🔥 {streak} {streak === 1 ? "semana" : "semanas"} seguidas
-            </span>
-          )}
-        </div>
+        {streak > 0 && (
+          <div className="flex items-center gap-1 rounded-full border border-[#2c2c32] bg-[#17171a] px-3 py-1.5">
+            <Flame className="h-4 w-4 text-orange-500" />
+            <span className="text-sm font-bold text-[#f5f5f0]">{streak}</span>
+          </div>
+        )}
       </div>
 
       {(profile?.role === "organizer" || profile?.role === "admin") && (
         <Link
           href="/organizador/validacoes"
-          className="block rounded-lg border-2 border-neutral-900 bg-neutral-900 p-3 text-center text-sm font-medium text-white"
+          className="block rounded-xl border border-[#2c2c32] bg-[#17171a] p-3 text-center text-sm font-medium text-[#f5f5f0]"
         >
           Abrir painel do organizador
         </Link>
       )}
 
-      <Card className="border-2 border-[#F5C518] bg-neutral-950 text-white">
-        <CardContent className="space-y-3 pt-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center gap-2">
-                <p className="text-sm text-neutral-300">Pontuacao total</p>
-                {isVip && <Badge variant="secondary">{level.levelName}</Badge>}
-              </div>
-              <p className="text-4xl font-bold text-[#F5C518]">{totalPoints}</p>
+      {/* Medalhao de nivel */}
+      <div className="cra-glass relative overflow-hidden rounded-3xl p-6">
+        <div className="cra-medallion-glow pointer-events-none absolute inset-0" />
+        <div className="relative flex items-center gap-5">
+          <div
+            className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border-2"
+            style={{ borderColor: "var(--cra-gold)", boxShadow: "0 0 24px rgba(201,162,39,0.35)" }}
+          >
+            <div className="text-center">
+              <p className="font-[family-name:var(--font-display)] text-2xl leading-none text-[#f5c518]">
+                {totalPoints}
+              </p>
+              <p className="text-[10px] uppercase tracking-widest text-[#9a9aa2]">pts</p>
             </div>
-            {pendingRequests && pendingRequests.length > 0 && (
-              <Badge variant="secondary">{pendingRequests.length} pendente(s)</Badge>
+          </div>
+          <div className="flex-1 space-y-2">
+            <p className="font-[family-name:var(--font-display)] text-xl tracking-wide text-[#c9a227]">
+              {isVip ? level.levelName.toUpperCase() : "SEM DESAFIO"}
+            </p>
+            {isVip && level.nextLevelName && (
+              <>
+                <div className="h-2 overflow-hidden rounded-full bg-[#2c2c32]">
+                  <div
+                    className="h-full rounded-full bg-gradient-to-r from-[#c9a227] to-[#f5c518]"
+                    style={{ width: `${level.progressPercent}%` }}
+                  />
+                </div>
+                <p className="text-xs text-[#9a9aa2]">
+                  Voce esta quase chegando a {level.nextLevelName}
+                </p>
+              </>
+            )}
+            {isVip && !level.nextLevelName && (
+              <p className="text-xs text-[#9a9aa2]">Nivel maximo — voce e Diamante 💎</p>
+            )}
+            {!isVip && !isAwaitingPayment && challenge && <JoinChallengeButton fee={challenge.registration_fee} />}
+            {isAwaitingPayment && (
+              <p className="text-xs text-[#9a9aa2]">Aguardando confirmacao do organizador pra virar VIP.</p>
             )}
           </div>
-
-          {isVip && level.nextLevelName && (
-            <div className="space-y-1">
-              <div className="h-2 overflow-hidden rounded-full bg-neutral-800">
-                <div
-                  className="h-full rounded-full bg-[#F5C518]"
-                  style={{ width: `${level.progressPercent}%` }}
-                />
-              </div>
-              <p className="text-xs text-neutral-400">
-                Faltam {level.pointsToNext} pts pra virar {level.nextLevelName}
-              </p>
-            </div>
-          )}
-          {isVip && !level.nextLevelName && (
-            <p className="text-xs text-neutral-400">Nivel maximo alcancado — voce e Diamante! 💎</p>
-          )}
-
-          {!isVip && !isAwaitingPayment && challenge && (
-            <JoinChallengeButton fee={challenge.registration_fee} />
-          )}
-          {isAwaitingPayment && (
-            <p className="text-sm text-neutral-300">
-              Aguardando confirmacao do pagamento pelo organizador para virar VIP e comecar a
-              pontuar no {challenge?.name}.
-            </p>
-          )}
-        </CardContent>
-      </Card>
-
-      <div className="grid grid-cols-2 gap-3">
-        <Button
-          render={<Link href="/checkin" />}
-          size="lg"
-          className="h-16 bg-[#F5C518] text-black hover:bg-[#e0b310]"
-        >
-          Fazer check-in
-        </Button>
-        {isVip ? (
-          <Button render={<Link href="/registrar-prova" />} size="lg" variant="outline" className="h-16">
-            Registrar prova
-          </Button>
-        ) : (
-          <Button size="lg" variant="outline" className="h-16" disabled>
-            Registrar prova (VIP)
-          </Button>
+        </div>
+        {pendingRequests && pendingRequests.length > 0 && (
+          <p className="relative mt-3 text-xs text-[#9a9aa2]">
+            {pendingRequests.length} solicitacao(oes) em analise
+          </p>
         )}
       </div>
 
-      {!isVip && (
-        <p className="text-center text-xs text-neutral-400">
-          Check-in nos corres e treinoes e livre pra qualquer cadastrado — mas so pontua e entra
-          no ranking quem for VIP do Desafio CRA 2026.
+      {/* Missao do dia */}
+      <div className="rounded-2xl border border-[#2c2c32] bg-[#17171a] p-4">
+        <p className="text-xs font-semibold uppercase tracking-widest text-[#c9a227]">Missao de hoje</p>
+        <p className="mt-1 text-sm text-[#f5f5f0]">{missionText}</p>
+      </div>
+
+      {/* Corre de hoje */}
+      {todaysEvent ? (
+        <div className="cra-glass rounded-2xl p-4">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="font-[family-name:var(--font-display)] text-lg tracking-wide text-[#f5f5f0]">
+                {todaysEvent.name.toUpperCase()}
+              </p>
+              <p className="text-sm text-[#9a9aa2]">
+                {new Date(todaysEvent.start_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+                {" — "}
+                {todaysEvent.location ?? todaysEvent.city}
+              </p>
+            </div>
+            <ScanLine className="h-5 w-5 text-[#F5C518]" />
+          </div>
+          {attendeeCount > 0 && (
+            <p className="mt-2 text-xs text-[#9a9aa2]">
+              {attendeeNames.length > 0 ? attendeeNames.join(", ") : "Alguns CRAs"} ja confirmaram
+              {attendeeCount > attendeeNames.length ? ` +${attendeeCount - attendeeNames.length}` : ""}
+            </p>
+          )}
+          <Link
+            href="/checkin"
+            className="mt-3 flex items-center justify-center gap-2 rounded-xl bg-[#F5C518] py-3 text-sm font-bold text-black"
+          >
+            Fazer check-in
+          </Link>
+        </div>
+      ) : (
+        <Link
+          href="/checkin"
+          className="flex items-center justify-between rounded-2xl border border-[#2c2c32] bg-[#17171a] p-4 text-sm font-medium text-[#f5f5f0]"
+        >
+          Fazer check-in
+          <ChevronRight className="h-4 w-4 text-[#9a9aa2]" />
+        </Link>
+      )}
+
+      {isVip ? (
+        <Link
+          href="/registrar-prova"
+          className="flex items-center justify-between rounded-2xl border border-[#2c2c32] bg-[#17171a] p-4 text-sm font-medium text-[#f5f5f0]"
+        >
+          Registrar prova externa
+          <ChevronRight className="h-4 w-4 text-[#9a9aa2]" />
+        </Link>
+      ) : (
+        <p className="text-center text-xs text-[#6f6f78]">
+          Check-in e livre pra qualquer cadastrado — so pontua e entra no ranking quem for VIP.
         </p>
       )}
 
-      {nextEvent && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Proximo evento CRA</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="font-medium">{nextEvent.name}</p>
-            <p className="text-sm text-neutral-500">
-              {nextEvent.city} — {new Date(nextEvent.start_at).toLocaleString("pt-BR")}
+      {/* Ranking mini */}
+      {rankingRows && rankingRows.length > 0 && (
+        <div className="rounded-2xl border border-[#2c2c32] bg-[#17171a] p-4">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="flex items-center gap-1.5 text-sm font-semibold text-[#f5f5f0]">
+              <Trophy className="h-4 w-4 text-[#F5C518]" /> Ranking
             </p>
-          </CardContent>
-        </Card>
+            <Link href="/ranking" className="text-xs text-[#9a9aa2]">
+              ver tudo
+            </Link>
+          </div>
+          <div className="space-y-2">
+            {rankingRows.map((r, i) => (
+              <div key={r.participant_id} className="flex items-center justify-between text-sm">
+                <span className="flex items-center gap-2">
+                  <span
+                    className={
+                      i === 0
+                        ? "text-[#f5c518]"
+                        : i === 1
+                          ? "text-[#c9c9ce]"
+                          : "text-[#c9a227]"
+                    }
+                  >
+                    {i + 1}º
+                  </span>
+                  <span className="text-[#f5f5f0]">{r.full_name}</span>
+                </span>
+                <span className="font-mono text-[#9a9aa2]">{r.total_points} pts</span>
+              </div>
+            ))}
+          </div>
+        </div>
       )}
 
-      <div className="grid grid-cols-2 gap-3 text-center">
-        <Link href="/ranking" className="rounded-lg border p-4 hover:bg-neutral-50">
-          <p className="text-sm text-neutral-500">Ranking</p>
-        </Link>
-        <Link href="/eventos" className="rounded-lg border p-4 hover:bg-neutral-50">
-          <p className="text-sm text-neutral-500">Eventos</p>
-        </Link>
-      </div>
+      {/* Conquistas recentes */}
+      {recentBadges.length > 0 && (
+        <div className="rounded-2xl border border-[#2c2c32] bg-[#17171a] p-4">
+          <p className="mb-3 text-sm font-semibold text-[#f5f5f0]">Conquistas recentes</p>
+          <div className="flex gap-3">
+            {recentBadges.map((b) => (
+              <div key={b.id} className="flex flex-col items-center gap-1">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full border border-[#c9a227]/50 bg-[#c9a227]/10 text-xl">
+                  {b.emoji}
+                </span>
+                <span className="w-16 text-center text-[10px] text-[#9a9aa2]">{b.label}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <Link
+        href="/eventos"
+        className="flex items-center justify-between rounded-2xl border border-[#2c2c32] bg-[#17171a] p-4 text-sm font-medium text-[#f5f5f0]"
+      >
+        Ver todos os eventos
+        <ChevronRight className="h-4 w-4 text-[#9a9aa2]" />
+      </Link>
     </div>
   );
 }

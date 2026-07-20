@@ -10,6 +10,7 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-geist-mono);
   --font-heading: var(--font-sans);
+  --font-display: var(--font-display);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -127,4 +128,30 @@
   html {
     @apply font-sans;
   }
+}
+
+/* ── CRA Design System — tokens da identidade visual ──
+   preto/grafite como base, amarelo CRA como marca, dourado pra premium/nivel,
+   verde-limao reservado pra acoes e feedback positivo. */
+:root {
+  --cra-black: #0a0a0b;
+  --cra-graphite: #17171a;
+  --cra-graphite-2: #212126;
+  --cra-graphite-border: #2c2c32;
+  --cra-yellow: #f5c518;
+  --cra-gold: #c9a227;
+  --cra-lime: #b6ff3c;
+  --cra-ink: #f5f5f0;
+  --cra-ink-muted: #9a9aa2;
+}
+
+.cra-glass {
+  background: linear-gradient(180deg, rgba(33, 33, 38, 0.7), rgba(23, 23, 26, 0.85));
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--cra-graphite-border);
+}
+
+.cra-medallion-glow {
+  background: radial-gradient(circle at 50% 30%, rgba(201, 162, 39, 0.35), transparent 70%);
 }
