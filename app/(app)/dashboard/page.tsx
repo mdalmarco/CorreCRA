@@ -5,6 +5,7 @@ import { JoinChallengeButton } from "./join-challenge-button";
 import { getLevelProgress } from "@/lib/levels";
 import { computeWeeklyStreak } from "@/lib/streak";
 import { computeBadges } from "@/lib/badges";
+import { Mascot } from "@/components/mascot";
 import { Trophy, Flame, ChevronRight, ScanLine } from "lucide-react";
 
 export default async function DashboardPage() {
@@ -148,24 +149,24 @@ export default async function DashboardPage() {
         </Link>
       )}
 
+      {/* Temporada */}
+      {challenge && (
+        <p className="text-center text-[11px] uppercase tracking-widest text-[#6f6f78]">
+          Temporada 1 — {challenge.name}
+        </p>
+      )}
+
       {/* Medalhao de nivel */}
       <div className="cra-glass relative overflow-hidden rounded-3xl p-6">
         <div className="cra-medallion-glow pointer-events-none absolute inset-0" />
         <div className="relative flex items-center gap-5">
-          <div
-            className="flex h-24 w-24 shrink-0 items-center justify-center rounded-full border-2"
-            style={{ borderColor: "var(--cra-gold)", boxShadow: "0 0 24px rgba(201,162,39,0.35)" }}
-          >
-            <div className="text-center">
-              <p className="font-[family-name:var(--font-display)] text-2xl leading-none text-[#f5c518]">
-                {totalPoints}
-              </p>
-              <p className="text-[10px] uppercase tracking-widest text-[#9a9aa2]">pts</p>
-            </div>
-          </div>
+          <Mascot levelName={isVip ? level.levelName : "Iniciante"} size={88} />
           <div className="flex-1 space-y-2">
             <p className="font-[family-name:var(--font-display)] text-xl tracking-wide text-[#c9a227]">
               {isVip ? level.levelName.toUpperCase() : "SEM DESAFIO"}
+            </p>
+            <p className="font-[family-name:var(--font-display)] text-3xl leading-none text-[#f5c518]">
+              {totalPoints} pts
             </p>
             {isVip && level.nextLevelName && (
               <>
@@ -181,7 +182,7 @@ export default async function DashboardPage() {
               </>
             )}
             {isVip && !level.nextLevelName && (
-              <p className="text-xs text-[#9a9aa2]">Nivel maximo — voce e Diamante 💎</p>
+              <p className="text-xs text-[#9a9aa2]">Seu guepardo evoluiu ao maximo — Diamante 💎</p>
             )}
             {!isVip && !isAwaitingPayment && challenge && <JoinChallengeButton fee={challenge.registration_fee} />}
             {isAwaitingPayment && (

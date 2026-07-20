@@ -44,7 +44,7 @@ export default function CadastroPage() {
 
   if (done) {
     return (
-      <div className="flex min-h-svh items-center justify-center bg-neutral-50 px-4 text-center">
+      <div className="flex min-h-svh items-center justify-center bg-[#0a0a0b] px-4 text-center">
         <div>
           <h1 className="text-xl font-semibold">Cadastro realizado!</h1>
           <p className="mt-2 text-neutral-500">
@@ -56,8 +56,8 @@ export default function CadastroPage() {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-neutral-50 px-4">
-      <Card className="w-full max-w-sm border-neutral-200">
+    <div className="flex min-h-svh items-center justify-center bg-[#0a0a0b] px-4">
+      <Card className="w-full max-w-sm border-[#2c2c32]">
         <CardHeader>
           <CardTitle className="text-xl">Participar do Desafio CRA 2026</CardTitle>
           <CardDescription>

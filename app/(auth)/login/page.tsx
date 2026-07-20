@@ -31,8 +31,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-neutral-50 px-4">
-      <Card className="w-full max-w-sm border-neutral-200">
+    <div className="flex min-h-svh items-center justify-center bg-[#0a0a0b] px-4">
+      <Card className="w-full max-w-sm border-[#2c2c32]">
         <CardHeader>
           <CardTitle className="text-xl">Desafio CRA 2026</CardTitle>
           <CardDescription>Entre para acompanhar sua pontuacao</CardDescription>
@@ -66,7 +66,7 @@ export default function LoginPage() {
             </Button>
             <p className="text-center text-sm text-neutral-500">
               Ainda nao tem conta?{" "}
-              <a href="/cadastro" className="font-medium text-neutral-900 underline">
+              <a href="/cadastro" className="font-medium text-[#F5C518] underline">
                 Participe do desafio
               </a>
             </p>

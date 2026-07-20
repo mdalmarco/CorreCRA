@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { Mascot } from "@/components/mascot";
+import { getLevelProgress } from "@/lib/levels";
 
 const CITY_FILTERS = ["Blumenau", "Indaial"];
 
@@ -35,9 +35,6 @@ export default async function RankingPage({
     .limit(1)
     .maybeSingle();
 
-  // ranking_view agrega point_ledger validado no banco (contorna a RLS restritiva
-  // de point_ledger, que so permite leitura do proprio registro), ja trazendo os
-  // contadores usados nos criterios de desempate oficiais do Desafio CRA 2026.
   const { data: rows } = await supabase
     .from("ranking_view")
     .select("*")
@@ -64,19 +61,28 @@ export default async function RankingPage({
   const nextAbove = myIndex > 0 ? ranked[myIndex - 1] : null;
   const gapToNext = nextAbove ? (nextAbove.total_points ?? 0) - (myRow?.total_points ?? 0) : 0;
 
-  return (
-    <div className="mx-auto max-w-3xl p-4 pb-24">
-      <h1 className="mb-1 text-2xl font-bold">Ranking</h1>
-      <p className="mb-3 text-xs text-neutral-400">
-        Desempate: {(challenge?.tie_break_rules as string[] | undefined)?.join(" > ") ?? "—"}
-      </p>
+  const podium = ranked.slice(0, 3);
+  const rest = ranked.slice(3);
+  // ordem visual do podio: 2o, 1o, 3o
+  const podiumOrder = [podium[1], podium[0], podium[2]];
 
-      <div className="mb-4 flex gap-2">
+  return (
+    <div className="mx-auto max-w-3xl space-y-5 p-4 pb-28">
+      <div>
+        <h1 className="font-[family-name:var(--font-display)] text-3xl tracking-wide text-[#f5f5f0]">
+          RANKING
+        </h1>
+        <p className="text-xs text-[#6f6f78]">
+          Desempate: {(challenge?.tie_break_rules as string[] | undefined)?.join(" > ") ?? "—"}
+        </p>
+      </div>
+
+      <div className="flex gap-2">
         <Link
           href="/ranking"
           className={cn(
             "rounded-full px-3 py-1 text-sm font-medium",
-            !cityFilter ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-600"
+            !cityFilter ? "bg-[#F5C518] text-black" : "border border-[#2c2c32] text-[#9a9aa2]"
           )}
         >
           Geral
@@ -87,7 +93,7 @@ export default async function RankingPage({
             href={`/ranking?city=${encodeURIComponent(c)}`}
             className={cn(
               "rounded-full px-3 py-1 text-sm font-medium",
-              cityFilter === c ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-600"
+              cityFilter === c ? "bg-[#F5C518] text-black" : "border border-[#2c2c32] text-[#9a9aa2]"
             )}
           >
             {c}
@@ -95,60 +101,83 @@ export default async function RankingPage({
         ))}
       </div>
 
-      {myRow && (
-        <div className="mb-4 rounded-lg border-2 border-[#F5C518] bg-neutral-950 p-4 text-white">
-          <p className="text-sm text-neutral-300">
-            Sua posicao{cityFilter ? ` em ${cityFilter}` : ""}
-          </p>
-          <p className="text-2xl font-bold text-[#F5C518]">
+      {podium.length > 0 && (
+        <div className="cra-glass rounded-3xl p-5">
+          <div className="flex items-end justify-center gap-4">
+            {podiumOrder.map((r, slot) => {
+              if (!r) return <div key={slot} className="w-20" />;
+              const place = slot === 1 ? 1 : slot === 0 ? 2 : 3;
+              const height = place === 1 ? "h-28" : place === 2 ? "h-20" : "h-14";
+              const ring = place === 1 ? "#F5C518" : place === 2 ? "#c9c9ce" : "#c9a227";
+              const levelName = getLevelProgress(r.total_points ?? 0).levelName;
+              return (
+                <div key={r.participant_id} className="flex w-20 flex-col items-center gap-2">
+                  <Mascot levelName={levelName} size={place === 1 ? 56 : 44} />
+                  <p className="w-full truncate text-center text-xs font-medium text-[#f5f5f0]">
+                    {r.full_name}
+                  </p>
+                  <p className="font-mono text-xs text-[#9a9aa2]">{r.total_points} pts</p>
+                  <div
+                    className={cn("flex w-full items-end justify-center rounded-t-lg", height)}
+                    style={{ background: `linear-gradient(180deg, ${ring}33, ${ring}11)`, borderTop: `2px solid ${ring}` }}
+                  >
+                    <span
+                      className="font-[family-name:var(--font-display)] text-2xl"
+                      style={{ color: ring }}
+                    >
+                      {place}
+                    </span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {myRow && myIndex >= 3 && (
+        <div className="rounded-2xl border-2 border-[#F5C518] bg-[#17171a] p-4">
+          <p className="text-sm text-[#9a9aa2]">Sua posicao{cityFilter ? ` em ${cityFilter}` : ""}</p>
+          <p className="font-[family-name:var(--font-display)] text-2xl tracking-wide text-[#F5C518]">
             {myIndex + 1}º lugar — {myRow.total_points} pts
           </p>
-          {nextAbove ? (
-            <p className="mt-1 text-sm text-neutral-300">
-              Faltam <strong className="text-white">{gapToNext} pts</strong> pra alcancar{" "}
-              {nextAbove.full_name} ({myIndex}º lugar)
+          {nextAbove && (
+            <p className="mt-1 text-sm text-[#9a9aa2]">
+              Faltam <strong className="text-[#f5f5f0]">{gapToNext} pts</strong> pra alcancar {nextAbove.full_name}{" "}
+              ({myIndex}º lugar)
             </p>
-          ) : (
-            <p className="mt-1 text-sm text-neutral-300">Voce esta na lideranca! 🏆</p>
           )}
         </div>
       )}
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-12">#</TableHead>
-            <TableHead>Nome</TableHead>
-            <TableHead>Cidade</TableHead>
-            <TableHead className="text-right">Pontos</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {ranked.map((r, i) => (
-            <TableRow
-              key={r.participant_id}
-              className={cn(r.participant_id === myProfileId && "bg-[#F5C518]/10")}
-            >
-              <TableCell className="font-medium">
-                {i < 3 ? <Badge className="bg-[#F5C518] text-black">{i + 1}</Badge> : i + 1}
-              </TableCell>
-              <TableCell>
+      <div className="space-y-1.5">
+        {rest.map((r, i) => (
+          <div
+            key={r.participant_id}
+            className={cn(
+              "flex items-center justify-between rounded-xl border border-[#2c2c32] bg-[#17171a] px-4 py-2.5",
+              r.participant_id === myProfileId && "border-[#F5C518] bg-[#F5C518]/10"
+            )}
+          >
+            <div className="flex items-center gap-3">
+              <span className="w-6 text-center text-sm text-[#6f6f78]">{i + 4}</span>
+              <span className="text-sm text-[#f5f5f0]">
                 {r.full_name}
-                {r.participant_id === myProfileId && <span className="ml-1 text-xs text-neutral-400">(voce)</span>}
-              </TableCell>
-              <TableCell className="text-neutral-500">{r.city ?? "—"}</TableCell>
-              <TableCell className="text-right font-bold">{r.total_points}</TableCell>
-            </TableRow>
-          ))}
-          {ranked.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={4} className="py-8 text-center text-neutral-400">
-                {cityFilter ? `Ninguem pontuou em ${cityFilter} ainda.` : "Ainda sem pontuacoes validadas."}
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+                {r.participant_id === myProfileId && <span className="ml-1 text-xs text-[#9a9aa2]">(voce)</span>}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-[#6f6f78]">{r.city ?? "—"}</span>
+              <span className="font-mono text-sm font-bold text-[#f5f5f0]">{r.total_points}</span>
+            </div>
+          </div>
+        ))}
+        {ranked.length === 0 && (
+          <p className="rounded-xl border border-dashed border-[#2c2c32] py-8 text-center text-sm text-[#6f6f78]">
+            {cityFilter ? `Ninguem pontuou em ${cityFilter} ainda.` : "Ainda sem pontuacoes validadas."}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
