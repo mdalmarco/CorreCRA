@@ -33,7 +33,9 @@ export default async function EventosOrgPage() {
 
   const { data: events } = await supabase
     .from("events")
-    .select("id, name, city, status, start_at, checkin_code, points, qr_token, qr_token_expires_at")
+    .select(
+      "id, name, city, status, start_at, checkin_code, points, qr_token, qr_token_expires_at, activity_types(name)"
+    )
     .order("start_at", { ascending: false });
 
   const { data: cranecaDraws } = await supabase
@@ -78,7 +80,7 @@ export default async function EventosOrgPage() {
               {ev.status === "checkin_open" && (
                 <QrCodeButton eventId={ev.id} qrToken={ev.qr_token} qrTokenExpiresAt={ev.qr_token_expires_at} />
               )}
-              {ev.status === "checkin_closed" && (
+              {ev.status === "checkin_closed" && (Array.isArray(ev.activity_types) ? ev.activity_types[0] : ev.activity_types)?.name === "Corre semanal" && (
                 <CranecaDrawButton eventId={ev.id} existingWinnerName={cranecaByEvent.get(ev.id) ?? null} />
               )}
             </CardContent>
