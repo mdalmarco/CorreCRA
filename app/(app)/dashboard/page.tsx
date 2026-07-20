@@ -3,9 +3,10 @@ import { createClient } from "@/lib/supabase/server";
 import Link from "next/link";
 import { JoinChallengeButton } from "./join-challenge-button";
 import { getLevelProgress } from "@/lib/levels";
-import { computeWeeklyStreak } from "@/lib/streak";
+import { computeWeeklyStreak, countThisWeek, weeklyPointsSeries } from "@/lib/streak";
 import { computeBadges } from "@/lib/badges";
 import { Mascot } from "@/components/mascot";
+import { EvolutionChart } from "@/components/evolution-chart";
 import { Trophy, Flame, ChevronRight, ScanLine } from "lucide-react";
 
 export default async function DashboardPage() {
@@ -41,7 +42,7 @@ export default async function DashboardPage() {
 
   const { data: ledger } = await supabase
     .from("point_ledger")
-    .select("points, status, activity_types(name)")
+    .select("points, status, occurred_at, activity_types(name)")
     .eq("participant_id", profile?.id ?? "")
     .eq("status", "validated");
 
@@ -72,6 +73,16 @@ export default async function DashboardPage() {
     .filter((c) => activityName(c) === "Corre semanal")
     .map((c) => c.checked_in_at);
   const streak = computeWeeklyStreak(weeklyRunDates);
+
+  const WEEKLY_MISSION_TARGET = 3;
+  const checkinsThisWeek = countThisWeek((allCheckins ?? []).map((c) => c.checked_in_at));
+  const weeklyMissionDone = Math.min(checkinsThisWeek, WEEKLY_MISSION_TARGET);
+
+  const evolutionData = weeklyPointsSeries(
+    (ledger ?? []).map((l) => ({ points: Number(l.points), occurred_at: l.occurred_at })),
+    6
+  );
+  const xpThisWeek = evolutionData[evolutionData.length - 1]?.points ?? 0;
 
   const badges = computeBadges({
     checkinActivityNames: (allCheckins ?? []).map(activityName),
@@ -203,6 +214,33 @@ export default async function DashboardPage() {
         <p className="mt-1 text-sm text-[#f5f5f0]">{missionText}</p>
       </div>
 
+      {/* Missao da semana */}
+      {isVip && (
+        <div className="rounded-2xl border border-[#2c2c32] bg-[#17171a] p-4">
+          <div className="flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-widest text-[#c9a227]">
+              Missao da semana
+            </p>
+            <span className="text-xs text-[#9a9aa2]">
+              {weeklyMissionDone}/{WEEKLY_MISSION_TARGET}
+            </span>
+          </div>
+          <p className="mt-1 text-sm text-[#f5f5f0]">
+            Faca check-in {WEEKLY_MISSION_TARGET} vezes esta semana
+          </p>
+          <div className="mt-2 flex gap-1.5">
+            {Array.from({ length: WEEKLY_MISSION_TARGET }).map((_, i) => (
+              <span
+                key={i}
+                className={`h-1.5 flex-1 rounded-full ${
+                  i < weeklyMissionDone ? "bg-[#B6FF3C]" : "bg-[#2c2c32]"
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Corre de hoje */}
       {todaysEvent ? (
         <div className="cra-glass rounded-2xl p-4">
@@ -254,6 +292,17 @@ export default async function DashboardPage() {
         <p className="text-center text-xs text-[#6f6f78]">
           Check-in e livre pra qualquer cadastrado — so pontua e entra no ranking quem for VIP.
         </p>
+      )}
+
+      {/* Sua evolucao */}
+      {isVip && (
+        <div className="rounded-2xl border border-[#2c2c32] bg-[#17171a] p-4">
+          <div className="mb-1 flex items-center justify-between">
+            <p className="text-sm font-semibold text-[#f5f5f0]">Sua evolucao</p>
+            <span className="font-mono text-sm text-[#B6FF3C]">+{xpThisWeek} pts esta semana</span>
+          </div>
+          <EvolutionChart data={evolutionData} />
+        </div>
       )}
 
       {/* Ranking mini */}

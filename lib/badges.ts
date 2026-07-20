@@ -12,6 +12,7 @@ export interface Badge {
   id: string;
   label: string;
   emoji: string;
+  category: "Presenca" | "Sequencia" | "Treinos" | "Provas";
   earned: boolean;
 }
 
@@ -29,42 +30,49 @@ export function computeBadges(input: BadgeInput): Badge[] {
       id: "primeira-participacao",
       label: "Primeira participacao",
       emoji: "🎉",
+      category: "Presenca",
       earned: totalCheckins >= 1,
+    },
+    {
+      id: "dez-atividades",
+      label: "10 atividades",
+      emoji: "⭐",
+      category: "Presenca",
+      earned: totalCheckins >= 10,
     },
     {
       id: "primeiro-corre",
       label: "Primeiro corre semanal",
       emoji: "🏃",
+      category: "Sequencia",
       earned: weeklyRunCheckins >= 1,
+    },
+    {
+      id: "quatro-semanas",
+      label: "4 semanas consecutivas",
+      emoji: "🔥",
+      category: "Sequencia",
+      earned: input.weeklyStreak >= 4,
     },
     {
       id: "primeiro-treinao",
       label: "Primeiro treinao",
       emoji: "💪",
+      category: "Treinos",
       earned: monthlyTrainingCheckins >= 1,
     },
     {
       id: "primeira-prova-cra",
       label: "Primeira prova como CRA",
       emoji: "🏅",
+      category: "Provas",
       earned: craRegistrations >= 1 || craShirtRaces >= 1,
-    },
-    {
-      id: "quatro-semanas",
-      label: "4 semanas consecutivas",
-      emoji: "🔥",
-      earned: input.weeklyStreak >= 4,
-    },
-    {
-      id: "dez-atividades",
-      label: "10 atividades",
-      emoji: "⭐",
-      earned: totalCheckins >= 10,
     },
     {
       id: "representante-cra",
       label: "Representante CRA",
       emoji: "🟡",
+      category: "Provas",
       earned: craRegistrations >= 3,
     },
   ];

@@ -93,6 +93,26 @@ export default async function PerfilPage() {
   const earnedBadges = badges.filter((b) => b.earned);
   const lockedBadges = badges.filter((b) => !b.earned);
 
+  const categoryOrder = ["Presenca", "Sequencia", "Treinos", "Provas"] as const;
+  const categoryLabel: Record<(typeof categoryOrder)[number], string> = {
+    Presenca: "Presenca",
+    Sequencia: "Sequencia",
+    Treinos: "Treinos",
+    Provas: "Provas",
+  };
+  const collections = categoryOrder.map((cat) => {
+    const items = badges.filter((b) => b.category === cat);
+    return { category: cat, earned: items.filter((b) => b.earned).length, total: items.length };
+  });
+
+  const currentYear = new Date().getFullYear();
+  const checkinsThisYear = (checkins ?? []).filter(
+    (c) => new Date(c.checked_in_at).getFullYear() === currentYear
+  ).length;
+  const pointsThisYear = (ledgerEntries ?? [])
+    .filter((l) => l.status === "validated" && new Date(l.occurred_at).getFullYear() === currentYear)
+    .reduce((sum, l) => sum + Number(l.points), 0);
+
   return (
     <div className="mx-auto max-w-lg space-y-5 p-4 pb-28">
       {/* Vitrine */}
@@ -145,6 +165,50 @@ export default async function PerfilPage() {
             {challenge && <JoinChallengeButton fee={challenge.registration_fee} />}
           </>
         )}
+      </div>
+
+      {/* Colecoes */}
+      <div className="rounded-2xl border border-[#2c2c32] bg-[#17171a] p-4">
+        <p className="mb-3 text-sm font-semibold text-[#f5f5f0]">Colecoes</p>
+        <div className="grid grid-cols-4 gap-2">
+          {collections.map((c) => (
+            <div
+              key={c.category}
+              className="flex flex-col items-center gap-1 rounded-xl border border-[#2c2c32] bg-[#0a0a0b] py-3"
+            >
+              <span className="font-mono text-sm font-bold text-[#F5C518]">
+                {c.earned}/{c.total}
+              </span>
+              <span className="text-[10px] text-[#9a9aa2]">{categoryLabel[c.category]}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Resumo anual */}
+      <div className="rounded-2xl border border-[#2c2c32] bg-[#17171a] p-4">
+        <div className="mb-3 flex items-center justify-between">
+          <p className="text-sm font-semibold text-[#f5f5f0]">Resumo anual</p>
+          <span className="text-xs text-[#6f6f78]">{currentYear}</span>
+        </div>
+        <div className="grid grid-cols-4 gap-2 text-center">
+          <div>
+            <p className="font-mono text-lg font-bold text-[#f5f5f0]">{checkinsThisYear}</p>
+            <p className="text-[10px] text-[#9a9aa2]">corridas</p>
+          </div>
+          <div>
+            <p className="font-mono text-lg font-bold text-[#f5f5f0]">{pointsThisYear}</p>
+            <p className="text-[10px] text-[#9a9aa2]">pts</p>
+          </div>
+          <div>
+            <p className="font-mono text-lg font-bold text-[#f5f5f0]">{weeklyStreak}</p>
+            <p className="text-[10px] text-[#9a9aa2]">streak</p>
+          </div>
+          <div>
+            <p className="font-mono text-lg font-bold text-[#f5f5f0]">{earnedBadges.length}</p>
+            <p className="text-[10px] text-[#9a9aa2]">conquistas</p>
+          </div>
+        </div>
       </div>
 
       {/* Conquistas */}

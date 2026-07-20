@@ -18,6 +18,46 @@ function startOfWeek(date: Date): Date {
   return d;
 }
 
+export function countThisWeek(dates: string[]): number {
+  const start = startOfWeek(new Date());
+  const end = new Date(start);
+  end.setDate(end.getDate() + 7);
+  return dates.filter((d) => {
+    const t = new Date(d).getTime();
+    return t >= start.getTime() && t < end.getTime();
+  }).length;
+}
+
+export interface WeeklyPoint {
+  label: string;
+  points: number;
+}
+
+export function weeklyPointsSeries(
+  entries: { points: number; occurred_at: string }[],
+  weeks = 6
+): WeeklyPoint[] {
+  const starts: Date[] = [];
+  const cursor = startOfWeek(new Date());
+  for (let i = weeks - 1; i >= 0; i--) {
+    const s = new Date(cursor);
+    s.setDate(s.getDate() - i * 7);
+    starts.push(s);
+  }
+
+  return starts.map((s) => {
+    const e = new Date(s);
+    e.setDate(e.getDate() + 7);
+    const points = entries
+      .filter((entry) => {
+        const t = new Date(entry.occurred_at).getTime();
+        return t >= s.getTime() && t < e.getTime();
+      })
+      .reduce((sum, entry) => sum + Number(entry.points), 0);
+    return { label: `${s.getDate()}/${s.getMonth() + 1}`, points };
+  });
+}
+
 export function computeWeeklyStreak(checkinDates: string[]): number {
   if (checkinDates.length === 0) return 0;
 
