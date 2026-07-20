@@ -92,6 +92,23 @@ export async function setParticipantStatus(
   return { success: true };
 }
 
+export async function generateEventQrToken(eventId: string) {
+  const { supabase, reviewerId } = await getReviewerProfileId();
+  if (!reviewerId) return { error: "Nao autenticado." };
+
+  const token = crypto.randomUUID().replace(/-/g, "").slice(0, 12).toUpperCase();
+  const expiresAt = new Date(Date.now() + 4 * 60 * 60 * 1000).toISOString(); // 4h
+
+  const { error } = await supabase
+    .from("events")
+    .update({ qr_token: token, qr_token_expires_at: expiresAt })
+    .eq("id", eventId);
+
+  if (error) return { error: error.message };
+  revalidatePath("/organizador/eventos");
+  return { success: true, token, expiresAt };
+}
+
 export async function createEvent(formData: FormData) {
   const { supabase, reviewerId } = await getReviewerProfileId();
   if (!reviewerId) return { error: "Nao autenticado." };

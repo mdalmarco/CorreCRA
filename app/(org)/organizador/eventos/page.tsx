@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CreateEventForm } from "./create-event-form";
 import { CloseCheckinButton } from "./close-checkin-button";
+import { QrCodeButton } from "./qr-code-button";
 
 const statusLabel: Record<string, string> = {
   draft: "Rascunho",
@@ -31,7 +32,7 @@ export default async function EventosOrgPage() {
 
   const { data: events } = await supabase
     .from("events")
-    .select("id, name, city, status, start_at, checkin_code, points")
+    .select("id, name, city, status, start_at, checkin_code, points, qr_token, qr_token_expires_at")
     .order("start_at", { ascending: false });
 
   return (
@@ -50,16 +51,21 @@ export default async function EventosOrgPage() {
                 </Badge>
               </CardTitle>
             </CardHeader>
-            <CardContent className="flex items-center justify-between text-sm text-neutral-500">
-              <div>
-                <p>
-                  {ev.city ?? "—"} — {new Date(ev.start_at).toLocaleString("pt-BR")}
-                </p>
-                <p>
-                  Codigo: <strong>{ev.checkin_code}</strong> — {ev.points} pts
-                </p>
+            <CardContent className="space-y-3 text-sm text-neutral-500">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p>
+                    {ev.city ?? "—"} — {new Date(ev.start_at).toLocaleString("pt-BR")}
+                  </p>
+                  <p>
+                    Codigo: <strong>{ev.checkin_code}</strong> — {ev.points} pts
+                  </p>
+                </div>
+                {ev.status === "checkin_open" && <CloseCheckinButton eventId={ev.id} />}
               </div>
-              {ev.status === "checkin_open" && <CloseCheckinButton eventId={ev.id} />}
+              {ev.status === "checkin_open" && (
+                <QrCodeButton eventId={ev.id} qrToken={ev.qr_token} qrTokenExpiresAt={ev.qr_token_expires_at} />
+              )}
             </CardContent>
           </Card>
         ))}
