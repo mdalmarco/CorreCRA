@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
 import { JoinChallengeButton } from "./join-challenge-button";
 import { getLevelProgress } from "@/lib/levels";
+import { computeWeeklyStreak } from "@/lib/streak";
 
 export default async function DashboardPage() {
   const supabase = await createClient();
@@ -53,10 +54,20 @@ export default async function DashboardPage() {
     .eq("participant_id", profile?.id ?? "")
     .in("status", ["submitted", "in_review", "complement_requested"]);
 
+  const { data: weeklyCheckins } = await supabase
+    .from("event_checkins")
+    .select("checked_in_at, events!inner(activity_types!inner(name))")
+    .eq("participant_id", profile?.id ?? "")
+    .eq("status", "valid")
+    .eq("events.activity_types.name", "Corre semanal");
+
+  const streak = computeWeeklyStreak((weeklyCheckins ?? []).map((c) => c.checked_in_at));
+
   const { data: nextEvent } = await supabase
     .from("events")
     .select("name, city, start_at")
-    .eq("status", "scheduled")
+    .in("status", ["scheduled", "checkin_open"])
+    .gte("start_at", new Date().toISOString())
     .order("start_at", { ascending: true })
     .limit(1)
     .maybeSingle();
@@ -68,7 +79,14 @@ export default async function DashboardPage() {
           <p className="text-sm text-neutral-500">Ola,</p>
           <h1 className="text-2xl font-bold">{profile?.display_name ?? profile?.full_name ?? "Participante"}</h1>
         </div>
-        {isVip && <Badge className="bg-[#F5C518] text-black">VIP</Badge>}
+        <div className="flex flex-col items-end gap-1">
+          {isVip && <Badge className="bg-[#F5C518] text-black">VIP</Badge>}
+          {streak > 0 && (
+            <span className="text-sm font-medium text-orange-600">
+              🔥 {streak} {streak === 1 ? "semana" : "semanas"} seguidas
+            </span>
+          )}
+        </div>
       </div>
 
       {(profile?.role === "organizer" || profile?.role === "admin") && (

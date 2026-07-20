@@ -1,9 +1,17 @@
+import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 
-export default async function RankingPage() {
+const CITY_FILTERS = ["Blumenau", "Indaial"];
+
+export default async function RankingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ city?: string }>;
+}) {
+  const { city: cityFilter } = await searchParams;
   const supabase = await createClient();
 
   const {
@@ -35,7 +43,7 @@ export default async function RankingPage() {
     .select("*")
     .order("total_points", { ascending: false });
 
-  const ranked = (rows ?? []).slice().sort((a, b) => {
+  const allRanked = (rows ?? []).slice().sort((a, b) => {
     if ((b.total_points ?? 0) !== (a.total_points ?? 0)) return (b.total_points ?? 0) - (a.total_points ?? 0);
     if ((b.cra_registrations ?? 0) !== (a.cra_registrations ?? 0))
       return (b.cra_registrations ?? 0) - (a.cra_registrations ?? 0);
@@ -47,6 +55,10 @@ export default async function RankingPage() {
     return new Date(a.achieved_at ?? 0).getTime() - new Date(b.achieved_at ?? 0).getTime();
   });
 
+  const ranked = cityFilter
+    ? allRanked.filter((r) => (r.city ?? "").toLowerCase() === cityFilter.toLowerCase())
+    : allRanked;
+
   const myIndex = myProfileId ? ranked.findIndex((r) => r.participant_id === myProfileId) : -1;
   const myRow = myIndex >= 0 ? ranked[myIndex] : null;
   const nextAbove = myIndex > 0 ? ranked[myIndex - 1] : null;
@@ -55,13 +67,39 @@ export default async function RankingPage() {
   return (
     <div className="mx-auto max-w-3xl p-4 pb-24">
       <h1 className="mb-1 text-2xl font-bold">Ranking</h1>
-      <p className="mb-4 text-xs text-neutral-400">
+      <p className="mb-3 text-xs text-neutral-400">
         Desempate: {(challenge?.tie_break_rules as string[] | undefined)?.join(" > ") ?? "—"}
       </p>
 
+      <div className="mb-4 flex gap-2">
+        <Link
+          href="/ranking"
+          className={cn(
+            "rounded-full px-3 py-1 text-sm font-medium",
+            !cityFilter ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-600"
+          )}
+        >
+          Geral
+        </Link>
+        {CITY_FILTERS.map((c) => (
+          <Link
+            key={c}
+            href={`/ranking?city=${encodeURIComponent(c)}`}
+            className={cn(
+              "rounded-full px-3 py-1 text-sm font-medium",
+              cityFilter === c ? "bg-neutral-900 text-white" : "bg-neutral-100 text-neutral-600"
+            )}
+          >
+            {c}
+          </Link>
+        ))}
+      </div>
+
       {myRow && (
         <div className="mb-4 rounded-lg border-2 border-[#F5C518] bg-neutral-950 p-4 text-white">
-          <p className="text-sm text-neutral-300">Sua posicao</p>
+          <p className="text-sm text-neutral-300">
+            Sua posicao{cityFilter ? ` em ${cityFilter}` : ""}
+          </p>
           <p className="text-2xl font-bold text-[#F5C518]">
             {myIndex + 1}º lugar — {myRow.total_points} pts
           </p>
@@ -105,7 +143,7 @@ export default async function RankingPage() {
           {ranked.length === 0 && (
             <TableRow>
               <TableCell colSpan={4} className="py-8 text-center text-neutral-400">
-                Ainda sem pontuacoes validadas.
+                {cityFilter ? `Ninguem pontuou em ${cityFilter} ainda.` : "Ainda sem pontuacoes validadas."}
               </TableCell>
             </TableRow>
           )}
