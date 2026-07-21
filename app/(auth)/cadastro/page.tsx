@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import Image from "next/image";
 
 export default function CadastroPage() {
   const router = useRouter();
@@ -44,7 +45,8 @@ export default function CadastroPage() {
 
   if (done) {
     return (
-      <div className="flex min-h-svh items-center justify-center bg-[#0a0a0b] px-4 text-center">
+      <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-[#0a0a0b] px-4 text-center">
+        <Image src="/cra-logo.png" alt="CRA" width={72} height={72} className="rounded-full" />
         <div>
           <h1 className="text-xl font-semibold">Cadastro realizado!</h1>
           <p className="mt-2 text-neutral-500">
@@ -56,7 +58,8 @@ export default function CadastroPage() {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-[#0a0a0b] px-4">
+    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-[#0a0a0b] px-4">
+      <Image src="/cra-logo.png" alt="CRA" width={72} height={72} className="rounded-full" />
       <Card className="w-full max-w-sm border-[#2c2c32]">
         <CardHeader>
           <CardTitle className="text-xl">Participar do Desafio CRA 2026</CardTitle>

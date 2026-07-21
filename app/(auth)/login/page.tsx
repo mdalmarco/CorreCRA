@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import Image from "next/image";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -31,7 +32,8 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-svh items-center justify-center bg-[#0a0a0b] px-4">
+    <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-[#0a0a0b] px-4">
+      <Image src="/cra-logo.png" alt="CRA" width={72} height={72} className="rounded-full" />
       <Card className="w-full max-w-sm border-[#2c2c32]">
         <CardHeader>
           <CardTitle className="text-xl">Desafio CRA 2026</CardTitle>
